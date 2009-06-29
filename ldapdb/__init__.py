@@ -56,6 +56,9 @@ class LdapConnection():
             mods.append((op, field, convert(field, value, lambda x: x.encode('utf-8'))))
         return self.connection.modify_s(dn, mods)
 
+    def rename_s(self, dn, newrdn):
+        return self.connection.rename_s(dn, newrdn)
+
     def search_s(self, base, scope, filterstr, attrlist):
         results = self.connection.search_s(base, scope, filterstr, attrlist)
         for dn, attrs in results:
