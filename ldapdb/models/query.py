@@ -26,28 +26,36 @@ import ldap
 from django.db.models.query import QuerySet as BaseQuerySet
 from django.db.models.query_utils import Q
 from django.db.models.sql import BaseQuery
-from django.db.models.sql.where import WhereNode
+from django.db.models.sql.where import WhereNode as BaseWhereNode, AND, OR
 
 import ldapdb
 
-def compile(q):
-    filterstr = ""
-    for item in q.children:
-        if isinstance(item, WhereNode):
-            filterstr += compile(item)
-            continue
-        table, column, type, x, y, values = item
-        if q.negated:
-            filterstr += "(!(%s=%s))" % (column,values[0])
+class WhereNode(BaseWhereNode):
+    def as_sql(self):
+        bits = []
+        for item in self.children:
+            if isinstance(item, WhereNode):
+                bits.append(item.as_sql())
+                continue
+            table, column, type, x, y, values = item
+            if self.negated:
+                bits.append('(!(%s=%s))' % (column,values[0]))
+            else:
+                bits.append('(%s=%s)' % (column,values[0]))
+        if len(bits) == 1:
+            return bits[0]
+        elif self.connector == AND:
+            return '(&%s)' % ''.join(bits)
+        elif self.connector == OR:
+            return '(|%s)' % ''.join(bits)
         else:
-            filterstr += "(%s=%s)" % (column,values[0])
-    return filterstr
+            raise Exception("Unhandled WHERE connector: %s" % self.connector)
 
 class Query(BaseQuery):
     def results_iter(self):
         # FIXME: use all object classes
         filterstr = '(objectClass=%s)' % self.model._meta.object_classes[0]
-        filterstr += compile(self.where)
+        filterstr += self.where.as_sql()
         filterstr = '(&%s)' % filterstr
         attrlist = [ x.db_column for x in self.model._meta.local_fields if x.db_column ]
 
@@ -86,6 +94,6 @@ class Query(BaseQuery):
 class QuerySet(BaseQuerySet):
     def __init__(self, model=None, query=None):
         if not query:
-            query = Query(model, None)
+            query = Query(model, None, WhereNode)
         super(QuerySet, self).__init__(model, query)
 
