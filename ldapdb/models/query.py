@@ -61,6 +61,22 @@ class Query(BaseQuery):
         except:
             raise self.model.DoesNotExist
 
+        # perform sorting
+        if self.extra_order_by:
+            ordering = self.extra_order_by
+        elif not self.default_ordering:
+            ordering = self.order_by
+        else:
+            ordering = self.order_by or self.model._meta.ordering
+        def getkey(x):
+            keys = []
+            for k in ordering:
+                attr = self.model._meta.get_field(k).db_column
+                keys.append(x[1][attr])
+            return keys
+        vals = sorted(vals, key=lambda x: getkey(x))
+
+        # process results
         for dn, attrs in vals:
             row = [dn]
             for field in iter(self.model._meta.fields):
