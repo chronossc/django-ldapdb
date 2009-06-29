@@ -59,14 +59,25 @@ class Model(django.db.models.base.Model):
     def __init__(self, dn=None, *args, **kwargs):
         self.dn = dn
         super(Model, self).__init__(*args, **kwargs)
+        self.saved_pk = self.pk
+
+    def build_rdn(self):
+        """
+        Build the Relative Distinguished Name for this entry.
+        """
+        bits = []
+        for field in self._meta.local_fields:
+            if field.primary_key:
+                bits.append("%s=%s" % (field.db_column, getattr(self, field.name)))
+        if not len(bits):
+            raise Exception("Could not build Distinguished Name")
+        return '+'.join(bits)
 
     def build_dn(self):
         """
         Build the Distinguished Name for this entry.
         """
-        for field in self._meta.local_fields:
-            if field.primary_key:
-                return "%s=%s,%s" % (field.db_column, getattr(self, field.name), self._meta.dn)
+        return "%s,%s" % (self.build_rdn(), self._meta.dn)
         raise Exception("Could not build Distinguished Name")
 
     def delete(self):
@@ -94,11 +105,12 @@ class Model(django.db.models.base.Model):
             
             # update object
             self.dn = new_dn
+            self.saved_pk = self.pk
             return
 
         # update an existing entry
         modlist = []
-        orig = self.__class__.objects.get(pk=self.pk)
+        orig = self.__class__.objects.get(pk=self.saved_pk)
         for field in self._meta.local_fields:
             if not field.db_column:
                 continue
@@ -110,9 +122,18 @@ class Model(django.db.models.base.Model):
                 elif old_value:
                     modlist.append((ldap.MOD_DELETE, field.db_column, None))
 
-        if len(modlist):
-            logging.debug("Modifying existing LDAP entry %s" % self.dn)
-            ldapdb.connection.modify_s(self.dn, modlist)
-        else:
+        if not len(modlist):
             logging.debug("No changes to be saved to LDAP entry %s" % self.dn)
+            return
+
+        # handle renaming
+        new_dn = self.build_dn()
+        if new_dn != self.dn:
+            logging.debug("Renaming LDAP entry %s to %s" % (self.dn, new_dn))
+            ldapdb.connection.rename_s(self.dn, self.build_rdn())
+            self.dn = new_dn
+    
+        logging.debug("Modifying existing LDAP entry %s" % self.dn)
+        ldapdb.connection.modify_s(self.dn, modlist)
+        self.saved_pk = self.pk
 
