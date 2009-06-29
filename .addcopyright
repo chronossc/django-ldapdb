@@ -1,6 +1,7 @@
 {
 'directories': [
     'ldapdb',
+    'ldapdb/models',
 ],
 
 'license': """django-ldapdb
