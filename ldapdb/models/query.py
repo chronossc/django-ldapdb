@@ -27,7 +27,8 @@ from django.db.models.query import QuerySet as BaseQuerySet
 from django.db.models.query_utils import Q
 from django.db.models.sql import BaseQuery
 from django.db.models.sql.where import WhereNode
-from granadilla.db import connection as ldap_connection
+
+import ldapdb
 
 def compile(q):
     filterstr = ""
@@ -51,7 +52,7 @@ class Query(BaseQuery):
         attrlist = [ x.db_column for x in self.model._meta.local_fields if x.db_column ]
 
         try:
-            vals = ldap_connection.search_s(
+            vals = ldapdb.connection.search_s(
                 self.model._meta.dn,
                 ldap.SCOPE_SUBTREE,
                 filterstr=filterstr,

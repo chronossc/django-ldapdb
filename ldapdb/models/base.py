@@ -25,8 +25,8 @@ import logging
 
 import django.db.models
 
-from granadilla.db import connection as ldap_connection
-from granadilla.db.query import QuerySet
+import ldapdb
+from ldapdb.models.query import QuerySet
 
 class ModelBase(django.db.models.base.ModelBase):
     """
@@ -77,7 +77,7 @@ class Model(django.db.models.base.Model):
         Delete this entry.
         """
         logging.debug("Deleting LDAP entry %s" % self.dn)
-        ldap_connection.delete_s(self.dn)
+        ldapdb.connection.delete_s(self.dn)
         
     def save(self):
         # create a new entry
@@ -93,7 +93,7 @@ class Model(django.db.models.base.Model):
                     entry.append((field.db_column, value))
 
             logging.debug("Creating new LDAP entry %s" % new_dn)
-            ldap_connection.add_s(new_dn, entry)
+            ldapdb.connection.add_s(new_dn, entry)
             
             # update object
             self.dn = new_dn
@@ -115,7 +115,7 @@ class Model(django.db.models.base.Model):
 
         if len(modlist):
             logging.debug("Modifying existing LDAP entry %s" % self.dn)
-            ldap_connection.modify_s(self.dn, modlist)
+            ldapdb.connection.modify_s(self.dn, modlist)
         else:
             logging.debug("No changes to be saved to LDAP entry %s" % self.dn)
 
