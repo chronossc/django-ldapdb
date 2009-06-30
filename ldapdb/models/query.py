@@ -25,7 +25,7 @@ import ldap
 
 from django.db.models.query import QuerySet as BaseQuerySet
 from django.db.models.query_utils import Q
-from django.db.models.sql import BaseQuery
+from django.db.models.sql import Query as BaseQuery
 from django.db.models.sql.where import WhereNode as BaseWhereNode, AND, OR
 
 import ldapdb
