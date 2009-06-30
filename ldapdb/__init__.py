@@ -32,7 +32,7 @@ def convert(field, value, func):
     else:
         return func(value)
         
-class LdapConnection():
+class LdapConnection(object):
     def __init__(self, server, bind_dn, bind_password):
         self.connection = ldap.initialize(server)
         self.connection.simple_bind_s(bind_dn, bind_password)
