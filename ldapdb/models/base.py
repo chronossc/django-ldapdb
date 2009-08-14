@@ -56,8 +56,9 @@ class Model(django.db.models.base.Model):
     """
     __metaclass__ = ModelBase
 
-    def __init__(self, dn=None, *args, **kwargs):
-        self.dn = dn
+    dn = django.db.models.fields.CharField(max_length=200)
+
+    def __init__(self, *args, **kwargs):
         super(Model, self).__init__(*args, **kwargs)
         self.saved_pk = self.pk
 

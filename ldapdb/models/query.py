@@ -91,9 +91,12 @@ class Query(BaseQuery):
 
         # process results
         for dn, attrs in vals:
-            row = [dn]
+            row = []
             for field in iter(self.model._meta.fields):
-                row.append(attrs.get(field.db_column, None))
+                if field.attname == 'dn':
+                    row.append(dn)
+                else:
+                    row.append(attrs.get(field.db_column, None))
             yield row
 
 class QuerySet(BaseQuerySet):
