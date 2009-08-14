@@ -37,7 +37,12 @@ class WhereNode(BaseWhereNode):
             if isinstance(item, WhereNode):
                 bits.append(item.as_sql())
                 continue
-            table, column, type, x, y, values = item
+            if len(item) == 4:
+                # django 1.1
+                (table, column, type), x, y, values = item
+            else:
+                # django 1.0
+                table, column, type, x, y, values = item
             if self.negated:
                 bits.append('(!(%s=%s))' % (column,values[0]))
             else:
