@@ -36,16 +36,17 @@ class LdapConnection(object):
     def __init__(self, server, bind_dn, bind_password):
         self.connection = ldap.initialize(server)
         self.connection.simple_bind_s(bind_dn, bind_password)
+        self.charset = "utf-8"
 
     def add_s(self, dn, modlist):
         mods = []
         for field, value in modlist:
-            converted = convert(field, value, lambda x: x.encode('utf-8'))
+            converted = convert(field, value, lambda x: x.encode(self.charset))
             if isinstance(converted, list):
                 mods.append((field, converted))
             else:
                 mods.append((field, [converted]))
-        return self.connection.add_s(dn, mods)
+        return self.connection.add_s(dn.encode(self.charset), mods)
 
     def delete_s(self, dn):
         return self.connection.delete_s(dn)
@@ -53,20 +54,20 @@ class LdapConnection(object):
     def modify_s(self, dn, modlist):
         mods = []
         for op, field, value in modlist:
-            mods.append((op, field, convert(field, value, lambda x: x.encode('utf-8'))))
-        return self.connection.modify_s(dn, mods)
+            mods.append((op, field, convert(field, value, lambda x: x.encode(self.charset))))
+        return self.connection.modify_s(dn.encode(self.charset), mods)
 
     def rename_s(self, dn, newrdn):
-        return self.connection.rename_s(dn, newrdn)
+        return self.connection.rename_s(dn.encode(self.charset), newrdn.encode(self.charset))
 
     def search_s(self, base, scope, filterstr, attrlist):
-        results = self.connection.search_s(base, scope, filterstr, attrlist)
+        results = self.connection.search_s(base, scope, filterstr.encode(self.charset), attrlist)
         for dn, attrs in results:
             for field in attrs:
                 if field == "member" or field == "memberUid":
-                    attrs[field] = convert(field, attrs[field], lambda x: x.decode('utf-8'))
+                    attrs[field] = convert(field, attrs[field], lambda x: x.decode(self.charset))
                 else:
-                    attrs[field] = convert(field, attrs[field][0], lambda x: x.decode('utf-8'))
+                    attrs[field] = convert(field, attrs[field][0], lambda x: x.decode(self.charset))
         return results
 
 # FIXME: is this the right place to initialize the LDAP connection?
