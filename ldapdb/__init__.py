@@ -62,13 +62,15 @@ class LdapConnection(object):
 
     def search_s(self, base, scope, filterstr, attrlist):
         results = self.connection.search_s(base, scope, filterstr.encode(self.charset), attrlist)
+        output = []
         for dn, attrs in results:
             for field in attrs:
                 if field == "member" or field == "memberUid":
                     attrs[field] = convert(field, attrs[field], lambda x: x.decode(self.charset))
                 else:
                     attrs[field] = convert(field, attrs[field][0], lambda x: x.decode(self.charset))
-        return results
+            output.append((dn.decode(self.charset), attrs))
+        return output
 
 # FIXME: is this the right place to initialize the LDAP connection?
 connection = LdapConnection(settings.LDAPDB_SERVER_URI,
