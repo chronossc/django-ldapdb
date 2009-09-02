@@ -40,10 +40,11 @@ class ModelBase(django.db.models.base.ModelBase):
         new_class = super_new(cls, name, bases, attrs)
 
         # patch manager to use our own QuerySet class
-        def get_query_set():
-            return QuerySet(new_class)
-        new_class.objects.get_query_set = get_query_set
-        new_class._default_manager.get_query_set = get_query_set
+        if not new_class._meta.abstract:
+            def get_query_set():
+                return QuerySet(new_class)
+            new_class.objects.get_query_set = get_query_set
+            new_class._default_manager.get_query_set = get_query_set
 
         if attr_meta:
             new_class._meta.dn = attr_meta.dn
