@@ -155,7 +155,8 @@ class Model(django.db.models.base.Model):
         """
         import new
         import re
-        name = "%s_%s" % (base_class.__name__, re.sub('[=,]', '_', base_dn))
+        suffix = re.sub('[=,]', '_', base_dn)
+        name = "%s_%s" % (base_class.__name__, str(suffix))
         new_class = new.classobj(name, (base_class,), {'base_dn': base_dn, '__module__': base_class.__module__})
         return new_class
 
