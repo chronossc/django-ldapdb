@@ -59,14 +59,14 @@ class WhereNode(BaseWhereNode):
 class Query(BaseQuery):
     def results_iter(self):
         # FIXME: use all object classes
-        filterstr = '(objectClass=%s)' % self.model._meta.object_classes[0]
+        filterstr = '(objectClass=%s)' % self.model.object_classes[0]
         filterstr += self.where.as_sql()
         filterstr = '(&%s)' % filterstr
         attrlist = [ x.db_column for x in self.model._meta.local_fields if x.db_column ]
 
         try:
             vals = ldapdb.connection.search_s(
-                self.model._meta.dn,
+                self.model.base_dn,
                 ldap.SCOPE_SUBTREE,
                 filterstr=filterstr,
                 attrlist=attrlist,
