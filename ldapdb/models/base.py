@@ -34,8 +34,6 @@ class ModelBase(django.db.models.base.ModelBase):
     Metaclass for all LDAP models.
     """
     def __new__(cls, name, bases, attrs):
-        attr_meta = attrs.pop('Ldap', None)
-
         super_new = super(ModelBase, cls).__new__
         new_class = super_new(cls, name, bases, attrs)
 
@@ -45,10 +43,6 @@ class ModelBase(django.db.models.base.ModelBase):
                 return QuerySet(new_class)
             new_class.objects.get_query_set = get_query_set
             new_class._default_manager.get_query_set = get_query_set
-
-        if attr_meta:
-            new_class._meta.dn = attr_meta.dn
-            new_class._meta.object_classes = attr_meta.object_classes
 
         return new_class
 
