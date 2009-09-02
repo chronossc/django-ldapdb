@@ -59,6 +59,10 @@ class Model(django.db.models.base.Model):
 
     dn = django.db.models.fields.CharField(max_length=200)
 
+    # meta-data
+    base_dn = None
+    object_classes = ['top']
+
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__(*args, **kwargs)
         self.saved_pk = self.pk
@@ -79,7 +83,7 @@ class Model(django.db.models.base.Model):
         """
         Build the Distinguished Name for this entry.
         """
-        return "%s,%s" % (self.build_rdn(), self._meta.dn)
+        return "%s,%s" % (self.build_rdn(), self.base_dn)
         raise Exception("Could not build Distinguished Name")
 
     def delete(self):
@@ -94,7 +98,7 @@ class Model(django.db.models.base.Model):
         if not self.dn:
             # create a new entry
             record_exists = False 
-            entry = [('objectClass', self._meta.object_classes)]
+            entry = [('objectClass', self.object_classes)]
             new_dn = self.build_dn()
 
             for field in self._meta.local_fields:
@@ -142,4 +146,15 @@ class Model(django.db.models.base.Model):
         # done
         self.saved_pk = self.pk
         signals.post_save.send(sender=self.__class__, instance=self, created=(not record_exists))
+
+    @classmethod
+    def scoped(base_class, base_dn):
+        """
+        Returns a copy of the current class with a different base_dn.
+        """
+        import new
+        import re
+        name = "%s_%s" % (base_class.__name__, re.sub('[=,]', '_', base_dn))
+        new_class = new.classobj(name, (base_class,), {'base_dn': base_dn, '__module__': base_class.__module__})
+        return new_class
 
