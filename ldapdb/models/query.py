@@ -85,7 +85,7 @@ class Query(BaseQuery):
             keys = []
             for k in ordering:
                 attr = self.model._meta.get_field(k).db_column
-                keys.append(x[1][attr])
+                keys.append(x[1].get(attr, None))
             return keys
         vals = sorted(vals, key=lambda x: getkey(x))
 
