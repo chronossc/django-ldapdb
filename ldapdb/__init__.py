@@ -49,7 +49,7 @@ class LdapConnection(object):
         return self.connection.add_s(dn.encode(self.charset), mods)
 
     def delete_s(self, dn):
-        return self.connection.delete_s(dn)
+        return self.connection.delete_s(dn.encode(self.charset))
 
     def modify_s(self, dn, modlist):
         mods = []
