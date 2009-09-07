@@ -18,8 +18,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-# -*- coding: utf-8 -*-
-
 from copy import deepcopy
 import ldap
 
@@ -43,10 +41,15 @@ class WhereNode(BaseWhereNode):
             else:
                 # django 1.0
                 table, column, type, x, y, values = item
-            if self.negated:
-                bits.append('(!(%s=%s))' % (column,values[0]))
+            equal_bits = [ "(%s=%s)" % (column, value) for value in values ]
+            if len(equal_bits) > 1:
+                clause = '(|%s)' % ''.join(equal_bits)
             else:
-                bits.append('(%s=%s)' % (column,values[0]))
+                clause = equal_bits[0]
+            if self.negated:
+                bits.append('(!%s)' % clause)
+            else:
+                bits.append(clause)
         if len(bits) == 1:
             return bits[0]
         elif self.connector == AND:
