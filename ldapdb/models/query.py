@@ -42,10 +42,10 @@ class WhereNode(BaseWhereNode):
                 # django 1.0
                 table, column, type, x, y, values = item
             equal_bits = [ "(%s=%s)" % (column, value) for value in values ]
-            if len(equal_bits) > 1:
-                clause = '(|%s)' % ''.join(equal_bits)
-            else:
+            if len(equal_bits) == 1:
                 clause = equal_bits[0]
+            else:
+                clause = '(|%s)' % ''.join(equal_bits)
             if self.negated:
                 bits.append('(!%s)' % clause)
             else:
