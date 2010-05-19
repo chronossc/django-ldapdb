@@ -29,6 +29,14 @@ class WhereTestCase(TestCase):
         where.add((Constraint("cn", "cn", None), 'exact', "test"), AND)
         self.assertEquals(where.as_sql(), "(cn=test)")
 
+        where = WhereNode()
+        where.add((Constraint("cn", "cn", None), 'startswith', "test"), AND)
+        self.assertEquals(where.as_sql(), "(cn=test*)")
+
+        where = WhereNode()
+        where.add((Constraint("cn", "cn", None), 'endswith', "test"), AND)
+        self.assertEquals(where.as_sql(), "(cn=*test)")
+
     def test_and(self):
         where = WhereNode()
         where.add((Constraint("cn", "cn", None), 'exact', "foo"), AND)
