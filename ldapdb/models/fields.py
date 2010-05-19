@@ -32,10 +32,10 @@ class CharField(fields.CharField):
         Used by the default implementations of ``get_db_prep_save``and
         `get_db_prep_lookup```
         """
-        return value.replace('\\', '\\5c')
-                    .replace('*', '\\2a')
-                    .replace('(', '\\28')
-                    .replace(')', '\\29')
+        return value.replace('\\', '\\5c') \
+                    .replace('*', '\\2a') \
+                    .replace('(', '\\28') \
+                    .replace(')', '\\29') \
                     .replace('\0', '\\00')
 
 class ImageField(fields.Field):
