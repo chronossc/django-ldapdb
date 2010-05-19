@@ -49,6 +49,10 @@ class WhereTestCase(TestCase):
         where.add((Constraint("cn", "cn", None), 'in', ["foo", "bar"]), AND)
         self.assertEquals(where.as_sql(), "(|(cn=foo)(cn=bar))")
 
+        where = WhereNode()
+        where.add((Constraint("cn", "cn", None), 'contains', "test"), AND)
+        self.assertEquals(where.as_sql(), "(cn=*test*)")
+
     def test_escaped(self):
         where = WhereNode()
         where.add((Constraint("cn", "cn", None), 'exact', "(test)"), AND)
