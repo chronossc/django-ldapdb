@@ -21,13 +21,20 @@
 from copy import deepcopy
 import ldap
 
-from django.db.models.fields import Field
 from django.db.models.query import QuerySet as BaseQuerySet
 from django.db.models.query_utils import Q
 from django.db.models.sql import Query as BaseQuery
 from django.db.models.sql.where import WhereNode as BaseWhereNode, Constraint as BaseConstraint, AND, OR
 
 import ldapdb
+
+def escape_ldap_filter(value):
+    value = str(value)
+    return value.replace('\\', '\\5c') \
+                .replace('*', '\\2a') \
+                .replace('(', '\\28') \
+                .replace(')', '\\29') \
+                .replace('\0', '\\00')
 
 class Constraint(BaseConstraint):
     """
@@ -43,13 +50,13 @@ class Constraint(BaseConstraint):
         from django.db.models.base import ObjectDoesNotExist
 
         if lookup_type == 'endswith':
-            params = ["*%s" % value]
+            params = ["*%s" % escape_ldap_filter(value)]
         elif lookup_type == 'startswith':
-            params = ["%s*" % value]
+            params = ["%s*" % escape_ldap_filter(value)]
         elif lookup_type == 'exact':
-            params = [value]
+            params = [escape_ldap_filter(value)]
         elif lookup_type == 'in':
-            params = [v for v in value]
+            params = [escape_ldap_filter(v) for v in value]
         else:
             raise TypeError("Field has invalid lookup: %s" % lookup_type)
 

@@ -22,13 +22,16 @@ from django.test import TestCase
 from django.db.models.sql.where import Constraint, AND, OR
 
 from ldapdb.models.fields import CharField
-from ldapdb.models.query import WhereNode
-
-class FieldTestCase(TestCase):
-    def test_db_prep(self):
-        field = CharField()
+from ldapdb.models.query import WhereNode, escape_ldap_filter
 
 class WhereTestCase(TestCase):
+    def test_escape(self):
+        self.assertEquals(escape_ldap_filter('foo*bar'), 'foo\\2abar')
+        self.assertEquals(escape_ldap_filter('foo(bar'), 'foo\\28bar')
+        self.assertEquals(escape_ldap_filter('foo)bar'), 'foo\\29bar')
+        self.assertEquals(escape_ldap_filter('foo\\bar'), 'foo\\5cbar')
+        self.assertEquals(escape_ldap_filter('foo\\bar*wiz'), 'foo\\5cbar\\2awiz')
+
     def test_single(self):
         where = WhereNode()
         where.add((Constraint("cn", "cn", None), 'exact', "test"), AND)
@@ -45,6 +48,11 @@ class WhereTestCase(TestCase):
         where = WhereNode()
         where.add((Constraint("cn", "cn", None), 'in', ["foo", "bar"]), AND)
         self.assertEquals(where.as_sql(), "(|(cn=foo)(cn=bar))")
+
+    def test_escaped(self):
+        where = WhereNode()
+        where.add((Constraint("cn", "cn", None), 'exact', "(test)"), AND)
+        self.assertEquals(where.as_sql(), "(cn=\\28test\\29)")
 
     def test_and(self):
         where = WhereNode()
