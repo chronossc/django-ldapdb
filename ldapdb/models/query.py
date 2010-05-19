@@ -53,6 +53,8 @@ class Constraint(BaseConstraint):
             params = ["*%s" % escape_ldap_filter(value)]
         elif lookup_type == 'startswith':
             params = ["%s*" % escape_ldap_filter(value)]
+        elif lookup_type == 'contains':
+            params = ["*%s*" % escape_ldap_filter(value)]
         elif lookup_type == 'exact':
             params = [escape_ldap_filter(value)]
         elif lookup_type == 'in':
