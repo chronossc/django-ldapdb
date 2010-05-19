@@ -48,6 +48,8 @@ class Constraint(BaseConstraint):
             params = ["%s*" % value]
         elif lookup_type == 'exact':
             params = [value]
+        elif lookup_type == 'in':
+            params = [v for v in value]
         else:
             raise TypeError("Field has invalid lookup: %s" % lookup_type)
 
