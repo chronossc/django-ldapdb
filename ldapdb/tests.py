@@ -21,7 +21,12 @@
 from django.test import TestCase
 from django.db.models.sql.where import Constraint, AND, OR
 
+from ldapdb.models.fields import CharField
 from ldapdb.models.query import WhereNode
+
+class FieldTestCase(TestCase):
+    def test_db_prep(self):
+        field = CharField()
 
 class WhereTestCase(TestCase):
     def test_single(self):

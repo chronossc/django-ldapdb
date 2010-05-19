@@ -25,6 +25,19 @@ class CharField(fields.CharField):
         kwargs['max_length'] = 200
         super(CharField, self).__init__(*args, **kwargs)
 
+    def get_db_prep_value(self, value):
+        """Returns field's value prepared for interacting with the database
+        backend.
+
+        Used by the default implementations of ``get_db_prep_save``and
+        `get_db_prep_lookup```
+        """
+        return value.replace('\\', '\\5c')
+                    .replace('*', '\\2a')
+                    .replace('(', '\\28')
+                    .replace(')', '\\29')
+                    .replace('\0', '\\00')
+
 class ImageField(fields.Field):
     pass
 
