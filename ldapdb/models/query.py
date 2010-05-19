@@ -21,14 +21,58 @@
 from copy import deepcopy
 import ldap
 
+from django.db.models.fields import Field
 from django.db.models.query import QuerySet as BaseQuerySet
 from django.db.models.query_utils import Q
 from django.db.models.sql import Query as BaseQuery
-from django.db.models.sql.where import WhereNode as BaseWhereNode, AND, OR
+from django.db.models.sql.where import WhereNode as BaseWhereNode, Constraint as BaseConstraint, AND, OR
 
 import ldapdb
 
+class Constraint(BaseConstraint):
+    """
+    An object that can be passed to WhereNode.add() and knows how to
+    pre-process itself prior to including in the WhereNode.
+    """
+    def process(self, lookup_type, value):
+        """
+        Returns a tuple of data suitable for inclusion in a WhereNode
+        instance.
+        """
+        # Because of circular imports, we need to import this here.
+        from django.db.models.base import ObjectDoesNotExist
+
+        if lookup_type == 'endswith':
+            params = ["*%s" % value]
+        elif lookup_type == 'startswith':
+            params = ["%s*" % value]
+        elif lookup_type == 'exact':
+            params = [value]
+        else:
+            raise TypeError("Field has invalid lookup: %s" % lookup_type)
+
+        try:
+            if self.field:
+                db_type = self.field.db_type()
+            else:
+                db_type = None
+        except ObjectDoesNotExist:
+            raise EmptyShortCircuit
+
+        return (self.alias, self.col, db_type), params
+
 class WhereNode(BaseWhereNode):
+    def add(self, data, connector):
+        if not isinstance(data, (list, tuple)):
+            super(WhereNode, self).add(data, connector)
+            return
+
+        # we replace the native Constraint by our own
+        obj, lookup_type, value = data
+        if hasattr(obj, "process"):
+            obj = Constraint(obj.alias, obj.col, obj.field)
+        super(WhereNode, self).add((obj, lookup_type, value), connector)
+
     def as_sql(self):
         bits = []
         for item in self.children:
