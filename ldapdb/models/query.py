@@ -28,7 +28,7 @@ from django.db.models.sql.where import WhereNode as BaseWhereNode, Constraint as
 
 import ldapdb
 
-from ldapdb import escape_ldap_filter
+from ldapdb.models.fields import CharField
 
 class Constraint(BaseConstraint):
     """
@@ -43,23 +43,12 @@ class Constraint(BaseConstraint):
         # Because of circular imports, we need to import this here.
         from django.db.models.base import ObjectDoesNotExist
 
-        if lookup_type == 'endswith':
-            params = ["*%s" % escape_ldap_filter(value)]
-        elif lookup_type == 'startswith':
-            params = ["%s*" % escape_ldap_filter(value)]
-        elif lookup_type == 'contains':
-            params = ["*%s*" % escape_ldap_filter(value)]
-        elif lookup_type == 'exact':
-            params = [escape_ldap_filter(value)]
-        elif lookup_type == 'in':
-            params = [escape_ldap_filter(v) for v in value]
-        else:
-            raise TypeError("Field has invalid lookup: %s" % lookup_type)
-
         try:
             if self.field:
+                params = self.field.get_db_prep_lookup(lookup_type, value)
                 db_type = self.field.db_type()
             else:
+                params = CharField().get_db_prep_lookup(lookup_type, value)
                 db_type = None
         except ObjectDoesNotExist:
             raise EmptyShortCircuit
