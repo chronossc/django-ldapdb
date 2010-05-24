@@ -57,13 +57,26 @@ class WhereTestCase(TestCase):
         self.assertEquals(where.as_sql(), "(cn=test*)")
 
         where = WhereNode()
+        where.add((Constraint("cn", "cn", CharField()), 'startswith', "te*st"), AND)
+        self.assertEquals(where.as_sql(), "(cn=te\\2ast*)")
+
+    def test_char_field_endswith(self):
+        where = WhereNode()
         where.add((Constraint("cn", "cn", CharField()), 'endswith', "test"), AND)
         self.assertEquals(where.as_sql(), "(cn=*test)")
+
+        where = WhereNode()
+        where.add((Constraint("cn", "cn", CharField()), 'endswith', "te*st"), AND)
+        self.assertEquals(where.as_sql(), "(cn=*te\\2ast)")
 
     def test_char_field_contains(self):
         where = WhereNode()
         where.add((Constraint("cn", "cn", CharField()), 'contains', "test"), AND)
         self.assertEquals(where.as_sql(), "(cn=*test*)")
+
+        where = WhereNode()
+        where.add((Constraint("cn", "cn", CharField()), 'contains', "te*st"), AND)
+        self.assertEquals(where.as_sql(), "(cn=*te\\2ast*)")
 
     def test_integer_field(self):
         where = WhereNode()
