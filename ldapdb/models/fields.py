@@ -33,7 +33,7 @@ class CharField(fields.CharField):
             return ["*%s" % escape_ldap_filter(value)]
         elif lookup_type == 'startswith':
             return ["%s*" % escape_ldap_filter(value)]
-        elif lookup_type == 'contains':
+        elif lookup_type in ['contains', 'icontains']:
             return ["*%s*" % escape_ldap_filter(value)]
         elif lookup_type == 'exact':
             return [escape_ldap_filter(value)]
@@ -48,7 +48,7 @@ class CharField(fields.CharField):
             return "*%s" % escape_ldap_filter(value)
         elif lookup_type == 'startswith':
             return "%s*" % escape_ldap_filter(value)
-        elif lookup_type == 'contains':
+        elif lookup_type in ['contains', 'icontains']:
             return "*%s*" % escape_ldap_filter(value)
         elif lookup_type == 'exact':
             return escape_ldap_filter(value)
