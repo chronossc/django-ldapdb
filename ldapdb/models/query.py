@@ -158,8 +158,15 @@ class Query(BaseQuery):
             yield row
 
 class QuerySet(BaseQuerySet):
-    def __init__(self, model=None, query=None):
+    def __init__(self, model=None, query=None, using=None):
         if not query:
-            query = Query(model, None, WhereNode)
+            import inspect
+            spec = inspect.getargspec(Query.__init__)
+            if len(spec[0]) == 3:
+                # django 1.2
+                query = Query(model, WhereNode)
+            else:
+                # django 1.1
+                query = Query(model, None, WhereNode)
         super(QuerySet, self).__init__(model, query)
 
