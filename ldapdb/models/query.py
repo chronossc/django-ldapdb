@@ -75,11 +75,11 @@ class WhereNode(BaseWhereNode):
             obj = Constraint(obj.alias, obj.col, obj.field)
         super(WhereNode, self).add((obj, lookup_type, value), connector)
 
-    def as_sql(self, qn=None):
+    def as_sql(self, qn=None, connection=None):
         bits = []
         for item in self.children:
-            if isinstance(item, WhereNode):
-                sql, params = item.as_sql()
+            if hasattr(item, 'as_sql'):
+                sql, params = item.as_sql(qn=qn, connection=connection)
                 bits.append(sql)
                 continue
 
