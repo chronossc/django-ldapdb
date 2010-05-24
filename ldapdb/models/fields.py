@@ -27,6 +27,20 @@ class CharField(fields.CharField):
         kwargs['max_length'] = 200
         super(CharField, self).__init__(*args, **kwargs)
 
+    def get_db_prep_lookup(self, lookup_type, value):
+        if lookup_type == 'endswith':
+            return ["*%s" % escape_ldap_filter(value)]
+        elif lookup_type == 'startswith':
+            return ["%s*" % escape_ldap_filter(value)]
+        elif lookup_type == 'contains':
+            return ["*%s*" % escape_ldap_filter(value)]
+        elif lookup_type == 'exact':
+            return [escape_ldap_filter(value)]
+        elif lookup_type == 'in':
+            return [escape_ldap_filter(v) for v in value]
+
+        raise TypeError("CharField has invalid lookup: %s" % lookup_type)
+
     def get_prep_lookup(self, lookup_type, value):
         return escape_ldap_filter(value)
         
@@ -34,7 +48,11 @@ class ImageField(fields.Field):
     pass
 
 class IntegerField(fields.IntegerField):
-    pass
+    def get_db_prep_lookup(self, lookup_type, value):
+        if lookup_type == 'exact':
+            return [value]
+
+        raise TypeError("IntegerField has invalid lookup: %s" % lookup_type)
 
 class ListField(fields.Field):
     __metaclass__ = SubfieldBase
