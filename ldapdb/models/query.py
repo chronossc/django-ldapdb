@@ -139,13 +139,21 @@ class Query(BaseQuery):
             ordering = self.order_by
         else:
             ordering = self.order_by or self.model._meta.ordering
-        def getkey(x):
-            keys = []
-            for k in ordering:
-                attr = self.model._meta.get_field(k).db_column
-                keys.append(x[1].get(attr, '').lower())
-            return keys
-        vals = sorted(vals, key=lambda x: getkey(x))
+        def cmpvals(x, y):
+            for field in ordering:
+                if field.startswith('-'):
+                    field = field[1:]
+                    negate = True
+                else:
+                    negate = False
+                attr = self.model._meta.get_field(field).db_column
+                attr_x = x[1].get(attr, '').lower()
+                attr_y = y[1].get(attr, '').lower()
+                val = negate and cmp(attr_y, attr_x) or cmp(attr_x, attr_y)
+                if val:
+                    return val
+            return 0
+        vals = sorted(vals, cmp=cmpvals)
 
         # process results
         for dn, attrs in vals:
