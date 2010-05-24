@@ -33,7 +33,7 @@ class WhereTestCase(TestCase):
         self.assertEquals(escape_ldap_filter('foo\\bar'), 'foo\\5cbar')
         self.assertEquals(escape_ldap_filter('foo\\bar*wiz'), 'foo\\5cbar\\2awiz')
 
-    def test_char_field(self):
+    def test_char_field_exact(self):
         where = WhereNode()
         where.add((Constraint("cn", "cn", CharField()), 'exact', "test"), AND)
         self.assertEquals(where.as_sql(), "(cn=test)")
@@ -42,6 +42,7 @@ class WhereTestCase(TestCase):
         where.add((Constraint("cn", "cn", CharField()), 'exact', "(test)"), AND)
         self.assertEquals(where.as_sql(), "(cn=\\28test\\29)")
 
+    def test_char_field_in(self):
         where = WhereNode()
         where.add((Constraint("cn", "cn", CharField()), 'in', ["foo", "bar"]), AND)
         self.assertEquals(where.as_sql(), "(|(cn=foo)(cn=bar))")
@@ -50,6 +51,7 @@ class WhereTestCase(TestCase):
         where.add((Constraint("cn", "cn", CharField()), 'in', ["(foo)", "(bar)"]), AND)
         self.assertEquals(where.as_sql(), "(|(cn=\\28foo\\29)(cn=\\28bar\\29))")
 
+    def test_char_field_startswith(self):
         where = WhereNode()
         where.add((Constraint("cn", "cn", CharField()), 'startswith', "test"), AND)
         self.assertEquals(where.as_sql(), "(cn=test*)")
@@ -58,10 +60,7 @@ class WhereTestCase(TestCase):
         where.add((Constraint("cn", "cn", CharField()), 'endswith', "test"), AND)
         self.assertEquals(where.as_sql(), "(cn=*test)")
 
-        where = WhereNode()
-        where.add((Constraint("cn", "cn", CharField()), 'in', ["foo", "bar"]), AND)
-        self.assertEquals(where.as_sql(), "(|(cn=foo)(cn=bar))")
-
+    def test_char_field_contains(self):
         where = WhereNode()
         where.add((Constraint("cn", "cn", CharField()), 'contains', "test"), AND)
         self.assertEquals(where.as_sql(), "(cn=*test*)")

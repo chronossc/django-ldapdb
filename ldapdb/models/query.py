@@ -81,15 +81,14 @@ class WhereNode(BaseWhereNode):
             if isinstance(item, WhereNode):
                 bits.append(item.as_sql())
                 continue
-            constraint, x, y, values = item
+            constraint, lookup_type, y, values = item
+            comp = get_lookup_operator(lookup_type)
             if hasattr(constraint, "col"):
                 # django 1.2
-                comp = get_lookup_operator(constraint.lookup_type)
                 clause = "(%s%s%s)" % (constraint.col, comp, values)
             else:
                 # django 1.1
                 (table, column, db_type) = constraint
-                comp = get_lookup_operator(x)
                 equal_bits = [ "(%s%s%s)" % (column, comp, value) for value in values ]
                 if len(equal_bits) == 1:
                     clause = equal_bits[0]
