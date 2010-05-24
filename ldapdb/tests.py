@@ -96,6 +96,10 @@ class WhereTestCase(TestCase):
         where.add((Constraint("memberUid", "memberUid", ListField()), 'contains', 'foouser'), AND)
         self.assertEquals(where.as_sql(), "(memberUid=foouser)")
 
+        where = WhereNode()
+        where.add((Constraint("memberUid", "memberUid", ListField()), 'contains', '(foouser)'), AND)
+        self.assertEquals(where.as_sql(), "(memberUid=\\28foouser\\29)")
+
     def test_and(self):
         where = WhereNode()
         where.add((Constraint("cn", "cn", CharField()), 'exact', "foo"), AND)
