@@ -21,8 +21,9 @@
 from django.test import TestCase
 from django.db.models.sql.where import Constraint, AND, OR
 
+from ldapdb.models.query import escape_ldap_filter
 from ldapdb.models.fields import CharField, IntegerField
-from ldapdb.models.query import WhereNode, escape_ldap_filter
+from ldapdb.models.query import WhereNode
 
 class WhereTestCase(TestCase):
     def test_escape(self):

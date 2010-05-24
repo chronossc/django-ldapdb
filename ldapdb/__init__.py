@@ -31,7 +31,15 @@ def convert(field, value, func):
         return [ func(x) for x in value ]
     else:
         return func(value)
-        
+
+def escape_ldap_filter(value):
+    value = str(value)
+    return value.replace('\\', '\\5c') \
+                .replace('*', '\\2a') \
+                .replace('(', '\\28') \
+                .replace(')', '\\29') \
+                .replace('\0', '\\00')
+
 class LdapConnection(object):
     def __init__(self, server, bind_dn, bind_password):
         self.connection = ldap.initialize(server)
