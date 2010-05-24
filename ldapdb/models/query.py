@@ -30,6 +30,14 @@ import ldapdb
 
 from ldapdb.models.fields import CharField
 
+def get_lookup_operator(lookup_type):
+    if lookup_type == 'gte':
+        return '>='
+    elif lookup_type == 'lte':
+        return '<='
+    else:
+        return '='
+
 class Constraint(BaseConstraint):
     """
     An object that can be passed to WhereNode.add() and knows how to
@@ -76,11 +84,13 @@ class WhereNode(BaseWhereNode):
             constraint, x, y, values = item
             if hasattr(constraint, "col"):
                 # django 1.2
-                clause = "(%s=%s)" % (constraint.col, values)
+                comp = get_lookup_operator(constraint.lookup_type)
+                clause = "(%s%s%s)" % (constraint.col, comp, values)
             else:
                 # django 1.1
-                (table, column, type) = constraint
-                equal_bits = [ "(%s=%s)" % (column, value) for value in values ]
+                (table, column, db_type) = constraint
+                comp = get_lookup_operator(x)
+                equal_bits = [ "(%s%s%s)" % (column, comp, value) for value in values ]
                 if len(equal_bits) == 1:
                     clause = equal_bits[0]
                 else:

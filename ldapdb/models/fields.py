@@ -50,7 +50,7 @@ class ImageField(fields.Field):
 
 class IntegerField(fields.IntegerField):
     def get_db_prep_lookup(self, lookup_type, value):
-        if lookup_type == 'exact':
+        if lookup_type in ('exact', 'gte', 'lte'):
             return [value]
 
         raise TypeError("IntegerField has invalid lookup: %s" % lookup_type)
