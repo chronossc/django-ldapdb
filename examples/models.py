@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from ldapdb.models.fields import CharField, IntegerField, ListField
+from ldapdb.models.fields import CharField, ImageField, IntegerField, ListField
 import ldapdb.models
 
 class LdapUser(ldapdb.models.Model):
@@ -36,7 +36,7 @@ class LdapUser(ldapdb.models.Model):
     email = CharField(db_column='mail')
     phone = CharField(db_column='telephoneNumber', blank=True)
     mobile_phone = CharField(db_column='mobile', blank=True)
-    #photo = ImageField(db_column='jpegPhoto')
+    photo = ImageField(db_column='jpegPhoto')
 
     # posixAccount
     uid = IntegerField(db_column='uidNumber', unique=True)
@@ -64,7 +64,7 @@ class LdapGroup(ldapdb.models.Model):
     # posixGroup attributes
     gid = IntegerField(db_column='gidNumber', unique=True)
     name = CharField(db_column='cn', max_length=200, primary_key=True)
-    members = ListField(db_column='memberUid')
+    usernames = ListField(db_column='memberUid')
 
     def __str__(self):
         return self.name

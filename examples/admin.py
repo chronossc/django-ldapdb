@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # 
-# django-ldapdb
-# Copyright (C) 2009-2010 Bolloré telecom
+# django-granadilla
+# Copyright (C) 2009 Bolloré telecom
 # See AUTHORS file for a full list of contributors.
 # 
 # This program is free software: you can redistribute it and/or modify
@@ -18,28 +18,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from django.test import TestCase
+from django.contrib import admin
+from examples.models import LdapGroup, LdapUser
 
-from examples.models import LdapUser, LdapGroup
+class LdapGroupAdmin(admin.ModelAdmin):
+    exclude = ['dn', 'usernames']
 
-class GroupTestCase(TestCase):
-    def test_create(self):
-        g = LdapGroup()
-        g.name = "foogroup"
-        g.gid = 1000
-        g.usernames = ['foouser']
-        g.save()
- 
-class UserTestCase(TestCase):
-    def test_create(self):
-        u = LdapUser()
-        u.first_name = "Foo"
-        u.last_name = "User"
-        u.full_name = "Foo User"
+class LdapUserAdmin(admin.ModelAdmin):
+    exclude = ['dn', 'password', 'photo']
 
-        u.group = 1000
-        u.home_directory = "/home/foouser"
-        u.uid = 1000
-        u.username = "foouser"
-        u.save()
- 
+admin.site.register(LdapGroup, LdapGroupAdmin)
+admin.site.register(LdapUser, LdapUserAdmin)
