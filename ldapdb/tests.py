@@ -21,7 +21,7 @@
 from django.test import TestCase
 from django.db.models.sql.where import Constraint, AND, OR
 
-from ldapdb.models.query import escape_ldap_filter
+from ldapdb import escape_ldap_filter
 from ldapdb.models.fields import CharField, IntegerField, ListField
 from ldapdb.models.query import WhereNode
 
@@ -60,8 +60,16 @@ class WhereTestCase(TestCase):
 
     def test_integer_field(self):
         where = WhereNode()
-        where.add((Constraint("uid", "uid", CharField()), 'exact', 1), AND)
+        where.add((Constraint("uid", "uid", IntegerField()), 'exact', 1), AND)
         self.assertEquals(where.as_sql(), "(uid=1)")
+
+        where = WhereNode()
+        where.add((Constraint("uid", "uid", IntegerField()), 'gte', 1), AND)
+        self.assertEquals(where.as_sql(), "(uid>=1)")
+
+        where = WhereNode()
+        where.add((Constraint("uid", "uid", IntegerField()), 'lte', 1), AND)
+        self.assertEquals(where.as_sql(), "(uid<=1)")
 
     def test_and(self):
         where = WhereNode()
