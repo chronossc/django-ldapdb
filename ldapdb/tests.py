@@ -43,6 +43,14 @@ class WhereTestCase(TestCase):
         self.assertEquals(where.as_sql(), "(cn=\\28test\\29)")
 
         where = WhereNode()
+        where.add((Constraint("cn", "cn", CharField()), 'in', ["foo", "bar"]), AND)
+        self.assertEquals(where.as_sql(), "(|(cn=foo)(cn=bar))")
+
+        where = WhereNode()
+        where.add((Constraint("cn", "cn", CharField()), 'in', ["(foo)", "(bar)"]), AND)
+        self.assertEquals(where.as_sql(), "(|(cn=\\28foo\\29)(cn=\\28bar\\29))")
+
+        where = WhereNode()
         where.add((Constraint("cn", "cn", CharField()), 'startswith', "test"), AND)
         self.assertEquals(where.as_sql(), "(cn=test*)")
 
