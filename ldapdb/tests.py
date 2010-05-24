@@ -91,6 +91,11 @@ class WhereTestCase(TestCase):
         where.add((Constraint("uid", "uid", IntegerField()), 'lte', 1), AND)
         self.assertEquals(where.as_sql(), "(uid<=1)")
 
+    def test_list_field_contains(self):
+        where = WhereNode()
+        where.add((Constraint("memberUid", "memberUid", ListField()), 'contains', 'foouser'), AND)
+        self.assertEquals(where.as_sql(), "(memberUid=foouser)")
+
     def test_and(self):
         where = WhereNode()
         where.add((Constraint("cn", "cn", CharField()), 'exact', "foo"), AND)
