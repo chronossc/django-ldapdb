@@ -122,8 +122,7 @@ class Query(BaseQuery):
         self.connection = ldapdb.connection
 
     def get_count(self):
-        # FIXME: use all object classes
-        filterstr = '(objectClass=%s)' % self.model.object_classes[0]
+        filterstr = ''.join(['(objectClass=%s)' % cls for cls in self.model.object_classes])
         sql, params = self.where.as_sql()
         filterstr += sql
         filterstr = '(&%s)' % filterstr
@@ -141,8 +140,7 @@ class Query(BaseQuery):
         return len(vals)
 
     def results_iter(self):
-        # FIXME: use all object classes
-        filterstr = '(objectClass=%s)' % self.model.object_classes[0]
+        filterstr = ''.join(['(objectClass=%s)' % cls for cls in self.model.object_classes])
         sql, params = self.where.as_sql()
         filterstr += sql
         filterstr = '(&%s)' % filterstr
