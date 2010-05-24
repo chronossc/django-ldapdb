@@ -59,19 +59,35 @@ class CharField(fields.CharField):
 
 class ImageField(fields.Field):
     def get_db_prep_lookup(self, lookup_type, value):
+        "Returns field's value prepared for database lookup."
+        return [self.get_prep_lookup(lookup_type, value)]
+
+    def get_prep_lookup(self, lookup_type, value):
+        "Perform preliminary non-db specific lookup checks and conversions"
         raise TypeError("ImageField has invalid lookup: %s" % lookup_type)
 
 class IntegerField(fields.IntegerField):
     def get_db_prep_lookup(self, lookup_type, value):
-        if lookup_type in ('exact', 'gte', 'lte'):
-            return [value]
+        "Returns field's value prepared for database lookup."
+        return [self.get_prep_lookup(lookup_type, value)]
 
+    def get_prep_lookup(self, lookup_type, value):
+        "Perform preliminary non-db specific lookup checks and conversions"
+        if lookup_type in ('exact', 'gte', 'lte'):
+            return value
         raise TypeError("IntegerField has invalid lookup: %s" % lookup_type)
 
 class ListField(fields.Field):
     __metaclass__ = SubfieldBase
 
     def get_db_prep_lookup(self, lookup_type, value):
+        "Returns field's value prepared for database lookup."
+        return [self.get_prep_lookup(lookup_type, value)]
+
+    def get_prep_lookup(self, lookup_type, value):
+        "Perform preliminary non-db specific lookup checks and conversions"
+        if lookup_type == 'contains':
+            return escape_ldap_filter(value)
         raise TypeError("ListField has invalid lookup: %s" % lookup_type)
 
     def to_python(self, value):
