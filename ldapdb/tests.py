@@ -22,7 +22,7 @@ from django.test import TestCase
 from django.db.models.sql.where import Constraint, AND, OR
 
 from ldapdb.models.query import escape_ldap_filter
-from ldapdb.models.fields import CharField, IntegerField
+from ldapdb.models.fields import CharField, IntegerField, ListField
 from ldapdb.models.query import WhereNode
 
 class WhereTestCase(TestCase):
@@ -37,6 +37,10 @@ class WhereTestCase(TestCase):
         where = WhereNode()
         where.add((Constraint("cn", "cn", CharField()), 'exact', "test"), AND)
         self.assertEquals(where.as_sql(), "(cn=test)")
+
+        where = WhereNode()
+        where.add((Constraint("cn", "cn", CharField()), 'exact', "(test)"), AND)
+        self.assertEquals(where.as_sql(), "(cn=\\28test\\29)")
 
         where = WhereNode()
         where.add((Constraint("cn", "cn", CharField()), 'startswith', "test"), AND)
@@ -58,11 +62,6 @@ class WhereTestCase(TestCase):
         where = WhereNode()
         where.add((Constraint("uid", "uid", CharField()), 'exact', 1), AND)
         self.assertEquals(where.as_sql(), "(uid=1)")
-
-    def test_escaped(self):
-        where = WhereNode()
-        where.add((Constraint("cn", "cn", CharField()), 'exact', "(test)"), AND)
-        self.assertEquals(where.as_sql(), "(cn=\\28test\\29)")
 
     def test_and(self):
         where = WhereNode()
