@@ -21,7 +21,7 @@
 import ldap
 
 from django.conf import settings
-from django.db.backends import BaseDatabaseOperations
+from django.db.backends import BaseDatabaseFeatures, BaseDatabaseOperations
 
 def convert(field, value, func):
     if not value or field == 'jpegPhoto':
@@ -41,6 +41,9 @@ def escape_ldap_filter(value):
                 .replace(')', '\\29') \
                 .replace('\0', '\\00')
 
+class DatabaseFeatures(BaseDatabaseFeatures):
+    pass
+
 class DatabaseOperations(BaseDatabaseOperations):
     def quote_name(self, name):
         return name
@@ -50,6 +53,7 @@ class LdapConnection(object):
         self.connection = ldap.initialize(server)
         self.connection.simple_bind_s(bind_dn, bind_password)
         self.charset = "utf-8"
+        self.features = DatabaseFeatures()
         self.ops = DatabaseOperations()
 
     def add_s(self, dn, modlist):
