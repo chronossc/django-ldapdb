@@ -21,7 +21,7 @@
 from django.test import TestCase
 from django.db.models.sql.where import Constraint, AND, OR
 
-from ldapdb.models.fields import CharField
+from ldapdb.models.fields import CharField, IntegerField
 from ldapdb.models.query import WhereNode, escape_ldap_filter
 
 class WhereTestCase(TestCase):
@@ -32,41 +32,46 @@ class WhereTestCase(TestCase):
         self.assertEquals(escape_ldap_filter('foo\\bar'), 'foo\\5cbar')
         self.assertEquals(escape_ldap_filter('foo\\bar*wiz'), 'foo\\5cbar\\2awiz')
 
-    def test_single(self):
+    def test_char_field(self):
         where = WhereNode()
-        where.add((Constraint("cn", "cn", None), 'exact', "test"), AND)
+        where.add((Constraint("cn", "cn", CharField()), 'exact', "test"), AND)
         self.assertEquals(where.as_sql(), "(cn=test)")
 
         where = WhereNode()
-        where.add((Constraint("cn", "cn", None), 'startswith', "test"), AND)
+        where.add((Constraint("cn", "cn", CharField()), 'startswith', "test"), AND)
         self.assertEquals(where.as_sql(), "(cn=test*)")
 
         where = WhereNode()
-        where.add((Constraint("cn", "cn", None), 'endswith', "test"), AND)
+        where.add((Constraint("cn", "cn", CharField()), 'endswith', "test"), AND)
         self.assertEquals(where.as_sql(), "(cn=*test)")
 
         where = WhereNode()
-        where.add((Constraint("cn", "cn", None), 'in', ["foo", "bar"]), AND)
+        where.add((Constraint("cn", "cn", CharField()), 'in', ["foo", "bar"]), AND)
         self.assertEquals(where.as_sql(), "(|(cn=foo)(cn=bar))")
 
         where = WhereNode()
-        where.add((Constraint("cn", "cn", None), 'contains', "test"), AND)
+        where.add((Constraint("cn", "cn", CharField()), 'contains', "test"), AND)
         self.assertEquals(where.as_sql(), "(cn=*test*)")
+
+    def test_integer_field(self):
+        where = WhereNode()
+        where.add((Constraint("uid", "uid", CharField()), 'exact', 1), AND)
+        self.assertEquals(where.as_sql(), "(uid=1)")
 
     def test_escaped(self):
         where = WhereNode()
-        where.add((Constraint("cn", "cn", None), 'exact', "(test)"), AND)
+        where.add((Constraint("cn", "cn", CharField()), 'exact', "(test)"), AND)
         self.assertEquals(where.as_sql(), "(cn=\\28test\\29)")
 
     def test_and(self):
         where = WhereNode()
-        where.add((Constraint("cn", "cn", None), 'exact', "foo"), AND)
-        where.add((Constraint("givenName", "givenName", None), 'exact', "bar"), AND)
+        where.add((Constraint("cn", "cn", CharField()), 'exact', "foo"), AND)
+        where.add((Constraint("givenName", "givenName", CharField()), 'exact', "bar"), AND)
         self.assertEquals(where.as_sql(), "(&(cn=foo)(givenName=bar))")
 
     def test_or(self):
         where = WhereNode()
-        where.add((Constraint("cn", "cn", None), 'exact', "foo"), AND)
-        where.add((Constraint("givenName", "givenName", None), 'exact', "bar"), OR)
+        where.add((Constraint("cn", "cn", CharField()), 'exact', "foo"), AND)
+        where.add((Constraint("givenName", "givenName", CharField()), 'exact', "bar"), OR)
         self.assertEquals(where.as_sql(), "(|(cn=foo)(givenName=bar))")
 
