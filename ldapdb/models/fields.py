@@ -45,7 +45,8 @@ class CharField(fields.CharField):
         return escape_ldap_filter(value)
         
 class ImageField(fields.Field):
-    pass
+    def get_db_prep_lookup(self, lookup_type, value):
+        raise TypeError("ImageField has invalid lookup: %s" % lookup_type)
 
 class IntegerField(fields.IntegerField):
     def get_db_prep_lookup(self, lookup_type, value):
@@ -56,6 +57,9 @@ class IntegerField(fields.IntegerField):
 
 class ListField(fields.Field):
     __metaclass__ = SubfieldBase
+
+    def get_db_prep_lookup(self, lookup_type, value):
+        raise TypeError("ListField has invalid lookup: %s" % lookup_type)
 
     def to_python(self, value):
         if not value:
