@@ -26,6 +26,7 @@ class LdapGroupAdmin(admin.ModelAdmin):
 
 class LdapUserAdmin(admin.ModelAdmin):
     exclude = ['dn', 'password', 'photo']
+    search_fields = ['first_name', 'last_name', 'full_name', 'username']
 
 admin.site.register(LdapGroup, LdapGroupAdmin)
 admin.site.register(LdapUser, LdapUserAdmin)
