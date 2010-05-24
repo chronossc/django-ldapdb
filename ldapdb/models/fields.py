@@ -20,11 +20,16 @@
 
 from django.db.models import fields, SubfieldBase
 
+from ldapdb import escape_ldap_filter
+
 class CharField(fields.CharField):
     def __init__(self, *args, **kwargs):
         kwargs['max_length'] = 200
         super(CharField, self).__init__(*args, **kwargs)
 
+    def get_prep_lookup(self, lookup_type, value):
+        return escape_ldap_filter(value)
+        
 class ImageField(fields.Field):
     pass
 

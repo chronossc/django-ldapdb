@@ -28,13 +28,7 @@ from django.db.models.sql.where import WhereNode as BaseWhereNode, Constraint as
 
 import ldapdb
 
-def escape_ldap_filter(value):
-    value = str(value)
-    return value.replace('\\', '\\5c') \
-                .replace('*', '\\2a') \
-                .replace('(', '\\28') \
-                .replace(')', '\\29') \
-                .replace('\0', '\\00')
+from ldapdb import escape_ldap_filter
 
 class Constraint(BaseConstraint):
     """
@@ -90,12 +84,18 @@ class WhereNode(BaseWhereNode):
             if isinstance(item, WhereNode):
                 bits.append(item.as_sql())
                 continue
-            (table, column, type), x, y, values = item
-            equal_bits = [ "(%s=%s)" % (column, value) for value in values ]
-            if len(equal_bits) == 1:
-                clause = equal_bits[0]
+            constraint, x, y, values = item
+            if hasattr(constraint, "col"):
+                # django 1.2
+                clause = "(%s=%s)" % (constraint.col, values)
             else:
-                clause = '(|%s)' % ''.join(equal_bits)
+                # django 1.1
+                (table, column, type) = constraint
+                equal_bits = [ "(%s=%s)" % (column, value) for value in values ]
+                if len(equal_bits) == 1:
+                    clause = equal_bits[0]
+                else:
+                    clause = '(|%s)' % ''.join(equal_bits)
             if self.negated:
                 bits.append('(!%s)' % clause)
             else:
