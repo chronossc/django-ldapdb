@@ -28,6 +28,7 @@ class CharField(fields.CharField):
         super(CharField, self).__init__(*args, **kwargs)
 
     def get_db_prep_lookup(self, lookup_type, value):
+        "Returns field's value prepared for database lookup."
         if lookup_type == 'endswith':
             return ["*%s" % escape_ldap_filter(value)]
         elif lookup_type == 'startswith':
@@ -42,8 +43,20 @@ class CharField(fields.CharField):
         raise TypeError("CharField has invalid lookup: %s" % lookup_type)
 
     def get_prep_lookup(self, lookup_type, value):
-        return escape_ldap_filter(value)
-        
+        "Perform preliminary non-db specific lookup checks and conversions"
+        if lookup_type == 'endswith':
+            return "*%s" % escape_ldap_filter(value)
+        elif lookup_type == 'startswith':
+            return "%s*" % escape_ldap_filter(value)
+        elif lookup_type == 'contains':
+            return "*%s*" % escape_ldap_filter(value)
+        elif lookup_type == 'exact':
+            return escape_ldap_filter(value)
+        elif lookup_type == 'in':
+            return [escape_ldap_filter(v) for v in value]
+
+        raise TypeError("CharField has invalid lookup: %s" % lookup_type)
+
 class ImageField(fields.Field):
     def get_db_prep_lookup(self, lookup_type, value):
         raise TypeError("ImageField has invalid lookup: %s" % lookup_type)
