@@ -41,6 +41,10 @@ def escape_ldap_filter(value):
                 .replace(')', '\\29') \
                 .replace('\0', '\\00')
 
+class DatabaseCursor(object):
+    def __init__(self, ldap_connection):
+        self.connection = ldap_connection
+
 class DatabaseFeatures(BaseDatabaseFeatures):
     pass
 
@@ -49,12 +53,19 @@ class DatabaseOperations(BaseDatabaseOperations):
         return name
 
 class LdapConnection(object):
-    def __init__(self, server, bind_dn, bind_password):
-        self.connection = ldap.initialize(server)
-        self.connection.simple_bind_s(bind_dn, bind_password)
+    def __init__(self):
+        self.connection = None
         self.charset = "utf-8"
         self.features = DatabaseFeatures()
         self.ops = DatabaseOperations()
+
+    def _cursor(self):
+        if self.connection is None:
+            self.connection = ldap.initialize(settings.LDAPDB_SERVER_URI)
+            self.connection.simple_bind_s(
+                settings.LDAPDB_BIND_DN,
+                settings.LDAPDB_BIND_PASSWORD)
+        return DatabaseCursor(self.connection)
 
     def add_s(self, dn, modlist):
         mods = []
@@ -64,22 +75,27 @@ class LdapConnection(object):
                 mods.append((field, converted))
             else:
                 mods.append((field, [converted]))
-        return self.connection.add_s(dn.encode(self.charset), mods)
+        cursor = self._cursor()
+        return cursor.connection.add_s(dn.encode(self.charset), mods)
 
     def delete_s(self, dn):
-        return self.connection.delete_s(dn.encode(self.charset))
+        cursor = self._cursor()
+        return cursor.connection.delete_s(dn.encode(self.charset))
 
     def modify_s(self, dn, modlist):
         mods = []
         for op, field, value in modlist:
             mods.append((op, field, convert(field, value, lambda x: x.encode(self.charset))))
-        return self.connection.modify_s(dn.encode(self.charset), mods)
+        cursor = self._cursor()
+        return cursor.connection.modify_s(dn.encode(self.charset), mods)
 
     def rename_s(self, dn, newrdn):
-        return self.connection.rename_s(dn.encode(self.charset), newrdn.encode(self.charset))
+        cursor = self._cursor()
+        return cursor.connection.rename_s(dn.encode(self.charset), newrdn.encode(self.charset))
 
     def search_s(self, base, scope, filterstr, attrlist):
-        results = self.connection.search_s(base, scope, filterstr.encode(self.charset), attrlist)
+        cursor = self._cursor()
+        results = cursor.connection.search_s(base, scope, filterstr.encode(self.charset), attrlist)
         output = []
         for dn, attrs in results:
             for field in attrs:
@@ -91,7 +107,5 @@ class LdapConnection(object):
         return output
 
 # FIXME: is this the right place to initialize the LDAP connection?
-connection = LdapConnection(settings.LDAPDB_SERVER_URI,
-    settings.LDAPDB_BIND_DN,
-    settings.LDAPDB_BIND_PASSWORD)
+connection = LdapConnection()
 
