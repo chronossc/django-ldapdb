@@ -40,9 +40,12 @@ class BaseTestCase(TestCase):
     def tearDown(self):
         cursor = connection._cursor()
         for base in [LdapGroup.base_dn, LdapUser.base_dn]:
-            results = cursor.connection.search_s(base, ldap.SCOPE_SUBTREE)
-            for dn, attrs in reversed(results):
-                cursor.connection.delete_s(dn)
+            try:
+                results = cursor.connection.search_s(base, ldap.SCOPE_SUBTREE)
+                for dn, attrs in reversed(results):
+                    cursor.connection.delete_s(dn)
+            except ldap.NO_SUCH_OBJECT:
+                pass
 
 class GroupTestCase(BaseTestCase):
     def setUp(self):
