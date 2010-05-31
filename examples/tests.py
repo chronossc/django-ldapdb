@@ -101,9 +101,9 @@ class UserTestCase(BaseTestCase):
         super(UserTestCase, self).setUp()
 
         u = LdapUser()
-        u.first_name = "Foo"
-        u.last_name = "User"
-        u.full_name = "Foo User"
+        u.first_name = u"Fôo"
+        u.last_name = u"Usér"
+        u.full_name = u"Fôo Usér"
 
         u.group = 1000
         u.home_directory = "/home/foouser"
@@ -114,9 +114,9 @@ class UserTestCase(BaseTestCase):
 
     def test_get(self):
         u = LdapUser.objects.get(username='foouser')
-        self.assertEquals(u.first_name, 'Foo') 
-        self.assertEquals(u.last_name, 'User') 
-        self.assertEquals(u.full_name, 'Foo User')
+        self.assertEquals(u.first_name, u'Fôo')
+        self.assertEquals(u.last_name, u'Usér')
+        self.assertEquals(u.full_name, u'Fôo Usér')
 
         self.assertEquals(u.group, 1000)
         self.assertEquals(u.home_directory, '/home/foouser')
