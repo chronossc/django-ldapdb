@@ -18,16 +18,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import ldap
-
 from django.test import TestCase
 
-from ldapdb import connection
+import ldap
+import ldapdb
 from examples.models import LdapUser, LdapGroup
 
 class BaseTestCase(TestCase):
     def setUp(self):
-        cursor = connection._cursor()
+        cursor = ldapdb.connection._cursor()
         for base in [LdapGroup.base_dn, LdapUser.base_dn]:
             rdn = base.split(',')[0]
             key, val = rdn.split('=')
@@ -38,7 +37,7 @@ class BaseTestCase(TestCase):
                 pass
 
     def tearDown(self):
-        cursor = connection._cursor()
+        cursor = ldapdb.connection._cursor()
         for base in [LdapGroup.base_dn, LdapUser.base_dn]:
             try:
                 results = cursor.connection.search_s(base, ldap.SCOPE_SUBTREE)
@@ -121,7 +120,7 @@ class UserTestCase(BaseTestCase):
 
         u.group = 1000
         u.home_directory = "/home/foouser"
-        u.uid = 1000
+        u.uid = 2000
         u.username = "foouser"
         u.photo = '\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00\xff\xfe\x00\x1cCreated with GIMP on a Mac\xff\xdb\x00C\x00\x05\x03\x04\x04\x04\x03\x05\x04\x04\x04\x05\x05\x05\x06\x07\x0c\x08\x07\x07\x07\x07\x0f\x0b\x0b\t\x0c\x11\x0f\x12\x12\x11\x0f\x11\x11\x13\x16\x1c\x17\x13\x14\x1a\x15\x11\x11\x18!\x18\x1a\x1d\x1d\x1f\x1f\x1f\x13\x17"$"\x1e$\x1c\x1e\x1f\x1e\xff\xdb\x00C\x01\x05\x05\x05\x07\x06\x07\x0e\x08\x08\x0e\x1e\x14\x11\x14\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\xff\xc0\x00\x11\x08\x00\x08\x00\x08\x03\x01"\x00\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x15\x00\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff\xc4\x00\x19\x10\x00\x03\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x02\x06\x11A\xff\xc4\x00\x14\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xc4\x00\x14\x11\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00?\x00\x9d\xf29wU5Q\xd6\xfd\x00\x01\xff\xd9'
         u.save()
@@ -134,7 +133,7 @@ class UserTestCase(BaseTestCase):
 
         self.assertEquals(u.group, 1000)
         self.assertEquals(u.home_directory, '/home/foouser')
-        self.assertEquals(u.uid, 1000)
+        self.assertEquals(u.uid, 2000)
         self.assertEquals(u.username, 'foouser')
         self.assertEquals(u.photo, '\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00\xff\xfe\x00\x1cCreated with GIMP on a Mac\xff\xdb\x00C\x00\x05\x03\x04\x04\x04\x03\x05\x04\x04\x04\x05\x05\x05\x06\x07\x0c\x08\x07\x07\x07\x07\x0f\x0b\x0b\t\x0c\x11\x0f\x12\x12\x11\x0f\x11\x11\x13\x16\x1c\x17\x13\x14\x1a\x15\x11\x11\x18!\x18\x1a\x1d\x1d\x1f\x1f\x1f\x13\x17"$"\x1e$\x1c\x1e\x1f\x1e\xff\xdb\x00C\x01\x05\x05\x05\x07\x06\x07\x0e\x08\x08\x0e\x1e\x14\x11\x14\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\x1e\xff\xc0\x00\x11\x08\x00\x08\x00\x08\x03\x01"\x00\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x15\x00\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff\xc4\x00\x19\x10\x00\x03\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x02\x06\x11A\xff\xc4\x00\x14\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xc4\x00\x14\x11\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00?\x00\x9d\xf29wU5Q\xd6\xfd\x00\x01\xff\xd9')
 
@@ -174,8 +173,18 @@ class AdminTestCase(BaseTestCase):
         u.full_name = "Foo User"
         u.group = 1000
         u.home_directory = "/home/foouser"
-        u.uid = 1000
+        u.uid = 2000
         u.username = "foouser"
+        u.save()
+
+        u = LdapUser()
+        u.first_name = "Bar"
+        u.last_name = "User"
+        u.full_name = "Bar User"
+        u.group = 1001
+        u.home_directory = "/home/baruser"
+        u.uid = 2001
+        u.username = "baruser"
         u.save()
 
         self.client.login(username="test_user", password="password")
@@ -189,6 +198,19 @@ class AdminTestCase(BaseTestCase):
         response = self.client.get('/admin/examples/ldapgroup/')
         self.assertContains(response, "Ldap groups")
         self.assertContains(response, "foogroup")
+        self.assertContains(response, "1000")
+
+        # order by name
+        response = self.client.get('/admin/examples/ldapgroup/?o=1')
+        self.assertContains(response, "Ldap groups")
+        self.assertContains(response, "foogroup")
+        self.assertContains(response, "1000")
+
+        # order by gid
+        response = self.client.get('/admin/examples/ldapgroup/?o=2')
+        self.assertContains(response, "Ldap groups")
+        self.assertContains(response, "foogroup")
+        self.assertContains(response, "1000")
 
     def test_group_detail(self):
         response = self.client.get('/admin/examples/ldapgroup/foogroup/')
@@ -197,14 +219,29 @@ class AdminTestCase(BaseTestCase):
 
     def test_group_search(self):
         response = self.client.get('/admin/examples/ldapgroup/?q=foo')
+        self.assertContains(response, "Ldap groups")
         self.assertContains(response, "foogroup")
+        self.assertContains(response, "1000")
 
     def test_user_list(self):
         response = self.client.get('/admin/examples/ldapuser/')
         self.assertContains(response, "Ldap users")
         self.assertContains(response, "foouser")
+        self.assertContains(response, "2000")
+
+        # order by username
+        response = self.client.get('/admin/examples/ldapuser/?o=1')
+        self.assertContains(response, "Ldap users")
+        self.assertContains(response, "foouser")
+        self.assertContains(response, "2000")
+
+        # order by uid
+        response = self.client.get('/admin/examples/ldapuser/?o=2')
+        self.assertContains(response, "Ldap users")
+        self.assertContains(response, "foouser")
+        self.assertContains(response, "2000")
 
     def test_user_detail(self):
         response = self.client.get('/admin/examples/ldapuser/foouser/')
         self.assertContains(response, "foouser")
-        self.assertContains(response, "1000")
+        self.assertContains(response, "2000")
