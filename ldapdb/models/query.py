@@ -113,7 +113,15 @@ class Compiler(object):
         vals = sorted(vals, cmp=cmpvals)
 
         # process results
+        pos = 0
         for dn, attrs in vals:
+            # FIXME : This is not optimal, we retrieve more results than we need
+            # but there is probably no other options as we can't perform ordering
+            # server side.
+            if (self.query.low_mark and pos < self.query.low_mark) or \
+               (self.query.high_mark is not None and pos >= self.query.high_mark):
+                pos += 1
+                continue
             row = []
             for field in iter(query.model._meta.fields):
                 if field.attname == 'dn':
@@ -123,6 +131,7 @@ class Compiler(object):
                 else:
                     row.append(None)
             yield row
+            pos += 1
 
 
 class WhereNode(BaseWhereNode):

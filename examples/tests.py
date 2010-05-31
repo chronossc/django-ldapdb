@@ -133,6 +133,30 @@ class GroupTestCase(BaseTestCase):
         qs = LdapGroup.objects.all()
         self.assertEquals(len(qs), 0)
 
+    def test_slice(self):
+        qs = LdapGroup.objects.all()
+        objs = list(qs)
+        self.assertEquals(len(objs), 3)
+        self.assertEquals(objs[0].gid, 1000)
+        self.assertEquals(objs[1].gid, 1001)
+        self.assertEquals(objs[2].gid, 1002)
+
+        qs = LdapGroup.objects.all()
+        objs = qs[:2]
+        for o in objs:
+            return 
+        print objs
+        self.assertEquals(len(objs), 2)
+        self.assertEquals(objs[0].gid, 1000)
+        self.assertEquals(objs[1].gid, 1001)
+        return
+
+        qs = LdapGroup.objects.all()
+        objs = qs[1:]
+        self.assertEquals(len(objs), 2)
+        self.assertEquals(objs[0].gid, 1001)
+        self.assertEquals(objs[1].gid, 1002)
+
     def test_update(self):
         g = LdapGroup.objects.get(name='foogroup')
 
