@@ -78,6 +78,7 @@ class GroupTestCase(BaseTestCase):
         self.assertEquals(g.gid, 1000)
         self.assertEquals(g.usernames, ['foouser', 'baruser'])
 
+        # try to get non-existent entry
         qs = LdapGroup.objects.filter(name='does_not_exist')
         self.assertEquals(len(qs), 0)
 
@@ -89,6 +90,31 @@ class GroupTestCase(BaseTestCase):
         self.assertEquals(g.usernames, ['foouser', 'baruser'])
 
         self.assertRaises(LdapGroup.DoesNotExist, LdapGroup.objects.get, name='does_not_exist')
+
+    def test_order_by(self):
+        # ascending name 
+        qs = LdapGroup.objects.order_by('name')
+        self.assertEquals(len(qs), 2)
+        self.assertEquals(qs[0].name, 'bargroup')
+        self.assertEquals(qs[1].name, 'foogroup')
+
+        # descending name 
+        qs = LdapGroup.objects.order_by('-name')
+        self.assertEquals(len(qs), 2)
+        self.assertEquals(qs[0].name, 'foogroup')
+        self.assertEquals(qs[1].name, 'bargroup')
+
+        # ascending gid
+        qs = LdapGroup.objects.order_by('gid')
+        self.assertEquals(len(qs), 2)
+        self.assertEquals(qs[0].gid, 1000)
+        self.assertEquals(qs[1].gid, 1001)
+
+        # descending gid
+        qs = LdapGroup.objects.order_by('-gid')
+        self.assertEquals(len(qs), 2)
+        self.assertEquals(qs[0].gid, 1001)
+        self.assertEquals(qs[1].gid, 1000)
 
     def test_update(self):
         g = LdapGroup.objects.get(name='foogroup')
