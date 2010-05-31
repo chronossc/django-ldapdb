@@ -79,9 +79,10 @@ class UserTestCase(BaseTestCase):
         self.assertEquals(u.first_name, 'Foo') 
         self.assertEquals(u.last_name, 'User') 
         self.assertEquals(u.full_name, 'Foo User')
- 
+
         self.assertEquals(u.group, 1000)
         self.assertEquals(u.home_directory, '/home/foouser')
         self.assertEquals(u.uid, 1000)
         self.assertEquals(u.username, 'foouser')
+        self.assertEquals(u.photo, '')
 
