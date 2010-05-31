@@ -24,6 +24,7 @@ from django.conf import settings
 from django.db.backends import BaseDatabaseFeatures, BaseDatabaseOperations
 
 def convert(field, value, func):
+    # FIXME : we should not reference the attribute name!
     if not value or field == 'jpegPhoto':
         return value
     elif isinstance(value, int):
@@ -99,6 +100,7 @@ class LdapConnection(object):
         output = []
         for dn, attrs in results:
             for field in attrs:
+                # FIXME : we should not reference the attribute name!
                 if field == "member" or field == "memberUid":
                     attrs[field] = convert(field, attrs[field], lambda x: x.decode(self.charset))
                 else:
