@@ -162,6 +162,12 @@ class AdminTestCase(BaseTestCase):
         g.usernames = ['foouser', 'baruser']
         g.save()
 
+        g = LdapGroup()
+        g.name = "bargroup"
+        g.gid = 1001
+        g.usernames = ['zoouser', 'baruser']
+        g.save()
+
         u = LdapUser()
         u.first_name = "Foo"
         u.last_name = "User"
@@ -188,6 +194,10 @@ class AdminTestCase(BaseTestCase):
         response = self.client.get('/admin/examples/ldapgroup/foogroup/')
         self.assertContains(response, "foogroup")
         self.assertContains(response, "1000")
+
+    def test_group_search(self):
+        response = self.client.get('/admin/examples/ldapgroup/?q=foo')
+        self.assertContains(response, "foogroup")
 
     def test_user_list(self):
         response = self.client.get('/admin/examples/ldapuser/')

@@ -23,6 +23,7 @@ from examples.models import LdapGroup, LdapUser
 
 class LdapGroupAdmin(admin.ModelAdmin):
     exclude = ['dn', 'usernames']
+    search_fields = ['name']
 
 class LdapUserAdmin(admin.ModelAdmin):
     exclude = ['dn', 'password', 'photo']
