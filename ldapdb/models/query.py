@@ -194,7 +194,7 @@ class Query(BaseQuery):
         filterstr = '(&%s)' % filterstr
 
         try:
-            vals = self.connection.search_s(
+            vals = ldapdb.connection.search_s(
                 self.model.base_dn,
                 ldap.SCOPE_SUBTREE,
                 filterstr=filterstr,
