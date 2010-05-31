@@ -69,26 +69,16 @@ class LdapConnection(object):
         return DatabaseCursor(self.connection)
 
     def add_s(self, dn, modlist):
-        mods = []
-        for field, value in modlist:
-            converted = convert(field, value, lambda x: x.encode(self.charset))
-            if isinstance(converted, list):
-                mods.append((field, converted))
-            else:
-                mods.append((field, [converted]))
         cursor = self._cursor()
-        return cursor.connection.add_s(dn.encode(self.charset), mods)
+        return cursor.connection.add_s(dn.encode(self.charset), modlist)
 
     def delete_s(self, dn):
         cursor = self._cursor()
         return cursor.connection.delete_s(dn.encode(self.charset))
 
     def modify_s(self, dn, modlist):
-        mods = []
-        for op, field, value in modlist:
-            mods.append((op, field, convert(field, value, lambda x: x.encode(self.charset))))
         cursor = self._cursor()
-        return cursor.connection.modify_s(dn.encode(self.charset), mods)
+        return cursor.connection.modify_s(dn.encode(self.charset), modlist)
 
     def rename_s(self, dn, newrdn):
         cursor = self._cursor()

@@ -42,6 +42,9 @@ class CharField(fields.CharField):
 
         raise TypeError("CharField has invalid lookup: %s" % lookup_type)
 
+    def get_db_prep_save(self, value, connection):
+        return [value.encode(connection.charset)]
+
     def get_prep_lookup(self, lookup_type, value):
         "Perform preliminary non-db specific lookup checks and conversions"
         if lookup_type == 'endswith':
@@ -62,6 +65,9 @@ class ImageField(fields.Field):
         "Returns field's value prepared for database lookup."
         return [self.get_prep_lookup(lookup_type, value)]
 
+    def get_db_prep_save(self, value, connection):
+        return [value]
+
     def get_prep_lookup(self, lookup_type, value):
         "Perform preliminary non-db specific lookup checks and conversions"
         raise TypeError("ImageField has invalid lookup: %s" % lookup_type)
@@ -70,6 +76,9 @@ class IntegerField(fields.IntegerField):
     def get_db_prep_lookup(self, lookup_type, value):
         "Returns field's value prepared for database lookup."
         return [self.get_prep_lookup(lookup_type, value)]
+
+    def get_db_prep_save(self, value, connection):
+        return [str(value)]
 
     def get_prep_lookup(self, lookup_type, value):
         "Perform preliminary non-db specific lookup checks and conversions"
@@ -83,6 +92,9 @@ class ListField(fields.Field):
     def get_db_prep_lookup(self, lookup_type, value):
         "Returns field's value prepared for database lookup."
         return [self.get_prep_lookup(lookup_type, value)]
+
+    def get_db_prep_save(self, value, connection):
+        return [x.encode(connection.charset) for x in value]
 
     def get_prep_lookup(self, lookup_type, value):
         "Perform preliminary non-db specific lookup checks and conversions"
