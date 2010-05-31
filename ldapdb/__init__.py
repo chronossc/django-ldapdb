@@ -23,17 +23,6 @@ import ldap
 from django.conf import settings
 from django.db.backends import BaseDatabaseFeatures, BaseDatabaseOperations
 
-def convert(field, value, func):
-    # FIXME : we should not reference the attribute name!
-    if not value or field == 'jpegPhoto':
-        return value
-    elif isinstance(value, int):
-        return str(value)
-    elif isinstance(value, list):
-        return [ func(x) for x in value ]
-    else:
-        return func(value)
-
 def escape_ldap_filter(value):
     value = str(value)
     return value.replace('\\', '\\5c') \
