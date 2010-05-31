@@ -71,22 +71,14 @@ class Compiler(object):
 
     def results_iter(self):
         query = self.query
-
-        filterstr = ''.join(['(objectClass=%s)' % cls for cls in query.model.object_classes])
-        sql, params = query.where.as_sql()
-        filterstr += sql
-        filterstr = '(&%s)' % filterstr
         attrlist = [ x.db_column for x in query.model._meta.local_fields if x.db_column ]
 
-        try:
-            vals = self.connection.search_s(
-                query.model.base_dn,
-                ldap.SCOPE_SUBTREE,
-                filterstr=filterstr,
-                attrlist=attrlist,
-            )
-        except:
-            raise query.model.DoesNotExist
+        vals = self.connection.search_s(
+            query.model.base_dn,
+            ldap.SCOPE_SUBTREE,
+            filterstr=query._ldap_filter(),
+            attrlist=attrlist,
+        )
 
         # perform sorting
         if query.extra_order_by:
@@ -187,22 +179,19 @@ class Query(BaseQuery):
         super(Query, self).__init__(*args, **kwargs)
         self.connection = ldapdb.connection
 
-    def get_count(self, using=None):
+    def _ldap_filter(self):
         filterstr = ''.join(['(objectClass=%s)' % cls for cls in self.model.object_classes])
         sql, params = self.where.as_sql()
         filterstr += sql
-        filterstr = '(&%s)' % filterstr
+        return '(&%s)' % filterstr
 
-        try:
-            vals = ldapdb.connection.search_s(
-                self.model.base_dn,
-                ldap.SCOPE_SUBTREE,
-                filterstr=filterstr,
-                attrlist=[],
-            )
-        except:
-            raise self.model.DoesNotExist
-
+    def get_count(self, using=None):
+        vals = ldapdb.connection.search_s(
+            self.model.base_dn,
+            ldap.SCOPE_SUBTREE,
+            filterstr=self._ldap_filter(),
+            attrlist=[],
+        )
         return len(vals)
 
     def get_compiler(self, using=None, connection=None):
