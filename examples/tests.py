@@ -29,8 +29,9 @@ class BaseTestCase(TestCase):
     def setUp(self):
         cursor = connection._cursor()
         for base in [LdapGroup.base_dn, LdapUser.base_dn]:
-            ou = base.split(',')[0].split('=')[1]
-            attrs = [('objectClass', ['top', 'organizationalUnit']), ('ou', [ou])]
+            rdn = base.split(',')[0]
+            key, val = rdn.split('=')
+            attrs = [('objectClass', ['top', 'organizationalUnit']), (key, [val])]
             try:
                 cursor.connection.add_s(base, attrs)
             except ldap.ALREADY_EXISTS:
@@ -68,6 +69,12 @@ class GroupTestCase(BaseTestCase):
 
         qs = LdapGroup.objects.filter(name='foogroup')
         self.assertEquals(len(qs), 1)
+
+        g = qs[0]
+        self.assertEquals(g.dn, 'cn=foogroup,ou=groups,dc=nodomain')
+        self.assertEquals(g.name, 'foogroup')
+        self.assertEquals(g.gid, 1000)
+        self.assertEquals(g.usernames, ['foouser', 'baruser'])
 
         qs = LdapGroup.objects.filter(name='does_not_exist')
         self.assertEquals(len(qs), 0)
