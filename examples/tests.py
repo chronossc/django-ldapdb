@@ -48,8 +48,16 @@ class GroupTestCase(BaseTestCase):
         g = LdapGroup()
         g.name = "foogroup"
         g.gid = 1000
-        g.usernames = ['foouser']
+        g.usernames = ['foouser', 'baruser']
         g.save()
+
+    def test_get(self):
+        self.test_create()
+
+        g = LdapGroup.objects.get(name='foogroup')
+        self.assertEquals(g.name, 'foogroup')
+        self.assertEquals(g.gid, 1000)
+        self.assertEquals(g.usernames, ['foouser', 'baruser'])
  
 class UserTestCase(BaseTestCase):
     def test_create(self):
@@ -63,4 +71,17 @@ class UserTestCase(BaseTestCase):
         u.uid = 1000
         u.username = "foouser"
         u.save()
+
+    def test_get(self):
+        self.test_create()
+
+        u = LdapUser.objects.get(username='foouser')
+        self.assertEquals(u.first_name, 'Foo') 
+        self.assertEquals(u.last_name, 'User') 
+        self.assertEquals(u.full_name, 'Foo User')
  
+        self.assertEquals(u.group, 1000)
+        self.assertEquals(u.home_directory, '/home/foouser')
+        self.assertEquals(u.uid, 1000)
+        self.assertEquals(u.username, 'foouser')
+

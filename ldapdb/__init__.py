@@ -100,11 +100,7 @@ class LdapConnection(object):
         output = []
         for dn, attrs in results:
             for field in attrs:
-                # FIXME : we should not reference the attribute name!
-                if field == "member" or field == "memberUid":
-                    attrs[field] = convert(field, attrs[field], lambda x: x.decode(self.charset))
-                else:
-                    attrs[field] = convert(field, attrs[field][0], lambda x: x.decode(self.charset))
+                attrs[field] = convert(field, attrs[field], lambda x: x.decode(self.charset))
             output.append((dn.decode(self.charset), attrs))
         return output
 
