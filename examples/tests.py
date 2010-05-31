@@ -62,12 +62,18 @@ class GroupTestCase(BaseTestCase):
         g.usernames = ['zoouser', 'baruser']
         g.save()
 
+        g = LdapGroup()
+        g.name = "wizgroup"
+        g.gid = 1002
+        g.usernames = ['wizuser', 'baruser']
+        g.save()
+
     def test_filter(self):
         qs = LdapGroup.objects.none()
         self.assertEquals(len(qs), 0)
 
         qs = LdapGroup.objects.all()
-        self.assertEquals(len(qs), 2)
+        self.assertEquals(len(qs), 3)
 
         qs = LdapGroup.objects.filter(name='foogroup')
         self.assertEquals(len(qs), 1)
@@ -95,27 +101,31 @@ class GroupTestCase(BaseTestCase):
     def test_order_by(self):
         # ascending name 
         qs = LdapGroup.objects.order_by('name')
-        self.assertEquals(len(qs), 2)
+        self.assertEquals(len(qs), 3)
         self.assertEquals(qs[0].name, 'bargroup')
         self.assertEquals(qs[1].name, 'foogroup')
+        self.assertEquals(qs[2].name, 'wizgroup')
 
         # descending name 
         qs = LdapGroup.objects.order_by('-name')
-        self.assertEquals(len(qs), 2)
-        self.assertEquals(qs[0].name, 'foogroup')
-        self.assertEquals(qs[1].name, 'bargroup')
+        self.assertEquals(len(qs), 3)
+        self.assertEquals(qs[0].name, 'wizgroup')
+        self.assertEquals(qs[1].name, 'foogroup')
+        self.assertEquals(qs[2].name, 'bargroup')
 
         # ascending gid
         qs = LdapGroup.objects.order_by('gid')
-        self.assertEquals(len(qs), 2)
+        self.assertEquals(len(qs), 3)
         self.assertEquals(qs[0].gid, 1000)
         self.assertEquals(qs[1].gid, 1001)
+        self.assertEquals(qs[2].gid, 1002)
 
         # descending gid
         qs = LdapGroup.objects.order_by('-gid')
-        self.assertEquals(len(qs), 2)
-        self.assertEquals(qs[0].gid, 1001)
-        self.assertEquals(qs[1].gid, 1000)
+        self.assertEquals(len(qs), 3)
+        self.assertEquals(qs[0].gid, 1002)
+        self.assertEquals(qs[1].gid, 1001)
+        self.assertEquals(qs[2].gid, 1000)
 
     def test_bulk_delete(self):
         LdapGroup.objects.all().delete()
@@ -140,7 +150,7 @@ class GroupTestCase(BaseTestCase):
         g.delete()
 
         qs = LdapGroup.objects.all()
-        self.assertEquals(len(qs), 1)
+        self.assertEquals(len(qs), 2)
 
 class UserTestCase(BaseTestCase):
     def setUp(self):
