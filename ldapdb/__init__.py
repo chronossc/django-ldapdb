@@ -89,8 +89,6 @@ class LdapConnection(object):
         results = cursor.connection.search_s(base, scope, filterstr.encode(self.charset), attrlist)
         output = []
         for dn, attrs in results:
-            for field in attrs:
-                attrs[field] = convert(field, attrs[field], lambda x: x.decode(self.charset))
             output.append((dn.decode(self.charset), attrs))
         return output
 

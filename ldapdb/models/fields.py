@@ -27,6 +27,12 @@ class CharField(fields.CharField):
         kwargs['max_length'] = 200
         super(CharField, self).__init__(*args, **kwargs)
 
+    def from_ldap(self, value, connection):
+        if len(value) == 0:
+            return ''
+        else:
+            return value[0].decode(connection.charset)
+
     def get_db_prep_lookup(self, lookup_type, value):
         "Returns field's value prepared for database lookup."
         if lookup_type == 'endswith':
@@ -61,6 +67,12 @@ class CharField(fields.CharField):
         raise TypeError("CharField has invalid lookup: %s" % lookup_type)
 
 class ImageField(fields.Field):
+    def from_ldap(self, value, connection):
+        if len(value) == 0:
+            return ''
+        else:
+            return value[0]
+
     def get_db_prep_lookup(self, lookup_type, value):
         "Returns field's value prepared for database lookup."
         return [self.get_prep_lookup(lookup_type, value)]
@@ -73,6 +85,12 @@ class ImageField(fields.Field):
         raise TypeError("ImageField has invalid lookup: %s" % lookup_type)
 
 class IntegerField(fields.IntegerField):
+    def from_ldap(self, value, connection):
+        if len(value) == 0:
+            return 0
+        else:
+            return int(value[0])
+        
     def get_db_prep_lookup(self, lookup_type, value):
         "Returns field's value prepared for database lookup."
         return [self.get_prep_lookup(lookup_type, value)]
@@ -88,6 +106,9 @@ class IntegerField(fields.IntegerField):
 
 class ListField(fields.Field):
     __metaclass__ = SubfieldBase
+
+    def from_ldap(self, value, connection):
+        return value
 
     def get_db_prep_lookup(self, lookup_type, value):
         "Returns field's value prepared for database lookup."
