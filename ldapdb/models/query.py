@@ -96,15 +96,15 @@ class Compiler(object):
         else:
             ordering = query.order_by or query.model._meta.ordering
         def cmpvals(x, y):
-            for field in ordering:
-                if field.startswith('-'):
-                    field = field[1:]
+            for fieldname in ordering:
+                if fieldname.startswith('-'):
+                    fieldname = fieldname[1:]
                     negate = True
                 else:
                     negate = False
-                attr = query.model._meta.get_field(field).db_column
-                attr_x = x[1].get(attr, '').lower()
-                attr_y = y[1].get(attr, '').lower()
+                field = query.model._meta.get_field(fieldname)
+                attr_x = field.from_ldap(x[1].get(field.db_column, []), connection=self.connection).lower()
+                attr_y = field.from_ldap(y[1].get(field.db_column, []), connection=self.connection).lower()
                 val = negate and cmp(attr_y, attr_x) or cmp(attr_x, attr_y)
                 if val:
                     return val
