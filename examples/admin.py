@@ -23,10 +23,12 @@ from examples.models import LdapGroup, LdapUser
 
 class LdapGroupAdmin(admin.ModelAdmin):
     exclude = ['dn', 'usernames']
+    list_display = ['name', 'gid']
     search_fields = ['name']
 
 class LdapUserAdmin(admin.ModelAdmin):
     exclude = ['dn', 'password', 'photo']
+    list_display = ['username', 'uid']
     search_fields = ['first_name', 'last_name', 'full_name', 'username']
 
 admin.site.register(LdapGroup, LdapGroupAdmin)
