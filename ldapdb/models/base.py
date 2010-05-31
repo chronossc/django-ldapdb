@@ -60,6 +60,12 @@ class Model(django.db.models.base.Model):
         super(Model, self).__init__(*args, **kwargs)
         self.saved_pk = self.pk
 
+    def _collect_sub_objects(self, collector):
+        """
+        This private API seems to be called by the admin interface in django 1.2
+        """
+        pass
+
     def build_rdn(self):
         """
         Build the Relative Distinguished Name for this entry.
