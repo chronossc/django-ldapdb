@@ -28,7 +28,7 @@ from django.db.models.sql.where import WhereNode as BaseWhereNode, Constraint as
 
 import ldapdb
 
-from ldapdb.models.fields import CharField, Integer, ListField
+from ldapdb.models.fields import CharField, IntegerField, ListField
 
 def get_lookup_operator(lookup_type):
     if lookup_type == 'gte':
