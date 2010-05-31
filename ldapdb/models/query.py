@@ -28,7 +28,7 @@ from django.db.models.sql.where import WhereNode as BaseWhereNode, Constraint as
 
 import ldapdb
 
-from ldapdb.models.fields import CharField, IntegerField, ListField
+from ldapdb.models.fields import CharField
 
 def get_lookup_operator(lookup_type):
     if lookup_type == 'gte':
@@ -185,12 +185,10 @@ class Query(BaseQuery):
             for field in iter(self.model._meta.fields):
                 if field.attname == 'dn':
                     row.append(dn)
-                elif isinstance(field, IntegerField):
-                    row.append(int(attrs.get(field.db_column, [0])[0]))
-                elif isinstance(field, ListField):
-                    row.append(attrs.get(field.db_column, []))
+                elif hasattr(field, 'from_ldap'):
+                    row.append(field.from_ldap(attrs.get(field.db_column, []), connection=ldapdb.connection))
                 else:
-                    row.append(attrs.get(field.db_column, [''])[0])
+                    row.append(None)
             yield row
 
 class QuerySet(BaseQuerySet):
