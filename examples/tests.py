@@ -18,11 +18,32 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import ldap
+
 from django.test import TestCase
 
+from ldapdb import connection
 from examples.models import LdapUser, LdapGroup
 
-class GroupTestCase(TestCase):
+class BaseTestCase(TestCase):
+    def setUp(self):
+        cursor = connection._cursor()
+        for base in [LdapGroup.base_dn, LdapUser.base_dn]:
+            ou = base.split(',')[0].split('=')[1]
+            attrs = [('objectClass', ['top', 'organizationalUnit']), ('ou', [ou])]
+            try:
+                cursor.connection.add_s(base, attrs)
+            except ldap.ALREADY_EXISTS:
+                pass
+
+    def tearDown(self):
+        cursor = connection._cursor()
+        for base in [LdapGroup.base_dn, LdapUser.base_dn]:
+            results = cursor.connection.search_s(base, ldap.SCOPE_SUBTREE)
+            for dn, attrs in reversed(results):
+                cursor.connection.delete_s(dn)
+
+class GroupTestCase(BaseTestCase):
     def test_create(self):
         g = LdapGroup()
         g.name = "foogroup"
@@ -30,7 +51,7 @@ class GroupTestCase(TestCase):
         g.usernames = ['foouser']
         g.save()
  
-class UserTestCase(TestCase):
+class UserTestCase(BaseTestCase):
     def test_create(self):
         u = LdapUser()
         u.first_name = "Foo"
