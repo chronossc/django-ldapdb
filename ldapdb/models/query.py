@@ -187,7 +187,7 @@ class Query(BaseQuery):
         super(Query, self).__init__(*args, **kwargs)
         self.connection = ldapdb.connection
 
-    def get_count(self):
+    def get_count(self, using=None):
         filterstr = ''.join(['(objectClass=%s)' % cls for cls in self.model.object_classes])
         sql, params = self.where.as_sql()
         filterstr += sql
