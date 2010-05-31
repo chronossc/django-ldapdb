@@ -90,18 +90,48 @@ class UserTestCase(BaseTestCase):
 class AdminTestCase(BaseTestCase):
     fixtures = ['test_users.json']
 
-    def test_index(self):
+    def setUp(self):
+        super(AdminTestCase, self).setUp()
+
+        g = LdapGroup()
+        g.name = "foogroup"
+        g.gid = 1000
+        g.usernames = ['foouser', 'baruser']
+        g.save()
+
+        u = LdapUser()
+        u.first_name = "Foo"
+        u.last_name = "User"
+        u.full_name = "Foo User"
+        u.group = 1000
+        u.home_directory = "/home/foouser"
+        u.uid = 1000
+        u.username = "foouser"
+        u.save()
+
         self.client.login(username="test_user", password="password")
+
+    def test_index(self):
         response = self.client.get('/admin/examples/')
         self.assertContains(response, "Ldap groups")
         self.assertContains(response, "Ldap users")
 
-    def test_list_groups(self):
-        self.client.login(username="test_user", password="password")
+    def test_group_list(self):
         response = self.client.get('/admin/examples/ldapgroup/')
         self.assertContains(response, "Ldap groups")
+        self.assertContains(response, "foogroup")
 
-    def test_list_users(self):
-        self.client.login(username="test_user", password="password")
+    def test_group_detail(self):
+        response = self.client.get('/admin/examples/ldapgroup/foogroup/')
+        self.assertContains(response, "foogroup")
+        self.assertContains(response, "1000")
+
+    def test_user_list(self):
         response = self.client.get('/admin/examples/ldapuser/')
         self.assertContains(response, "Ldap users")
+        self.assertContains(response, "foouser")
+
+    def test_user_detail(self):
+        response = self.client.get('/admin/examples/ldapuser/foouser/')
+        self.assertContains(response, "foouser")
+        self.assertContains(response, "1000")
