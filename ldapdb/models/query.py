@@ -73,12 +73,16 @@ class Compiler(object):
         query = self.query
         attrlist = [ x.db_column for x in query.model._meta.local_fields if x.db_column ]
 
-        vals = self.connection.search_s(
-            query.model.base_dn,
-            ldap.SCOPE_SUBTREE,
-            filterstr=query._ldap_filter(),
-            attrlist=attrlist,
-        )
+        try:
+            vals = self.connection.search_s(
+                query.model.base_dn,
+                ldap.SCOPE_SUBTREE,
+                filterstr=query._ldap_filter(),
+                attrlist=attrlist,
+            )
+        except ldap.NO_SUCH_OBJECT:
+            return
+            raise query.model.DoesNotExist
 
         # perform sorting
         if query.extra_order_by:
@@ -186,12 +190,15 @@ class Query(BaseQuery):
         return '(&%s)' % filterstr
 
     def get_count(self, using=None):
-        vals = ldapdb.connection.search_s(
-            self.model.base_dn,
-            ldap.SCOPE_SUBTREE,
-            filterstr=self._ldap_filter(),
-            attrlist=[],
-        )
+        try:
+            vals = ldapdb.connection.search_s(
+                self.model.base_dn,
+                ldap.SCOPE_SUBTREE,
+                filterstr=self._ldap_filter(),
+                attrlist=[],
+            )
+        except ldap.NO_SUCH_OBJECT:
+            return 0
         return len(vals)
 
     def get_compiler(self, using=None, connection=None):
@@ -216,12 +223,16 @@ class QuerySet(BaseQuerySet):
 
     def delete(self):
         "Bulk deletion."
-        vals = ldapdb.connection.search_s(
-            self.model.base_dn,
-            ldap.SCOPE_SUBTREE,
-            filterstr=self.query._ldap_filter(),
-            attrlist=[],
-        )
+        try:
+            vals = ldapdb.connection.search_s(
+                self.model.base_dn,
+                ldap.SCOPE_SUBTREE,
+                filterstr=self.query._ldap_filter(),
+                attrlist=[],
+            )
+        except ldap.NO_SUCH_OBJECT:
+            return
+
         # FIXME : there is probably a more efficient way to do this 
         for dn, attrs in vals:
             ldapdb.connection.delete_s(dn)
