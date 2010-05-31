@@ -116,6 +116,12 @@ class GroupTestCase(BaseTestCase):
         self.assertEquals(qs[0].gid, 1001)
         self.assertEquals(qs[1].gid, 1000)
 
+    def test_bulk_delete(self):
+        LdapGroup.objects.all().delete()
+
+        qs = LdapGroup.objects.all()
+        self.assertEquals(len(qs), 0)
+
     def test_update(self):
         g = LdapGroup.objects.get(name='foogroup')
 

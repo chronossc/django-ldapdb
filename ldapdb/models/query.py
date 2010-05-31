@@ -214,3 +214,15 @@ class QuerySet(BaseQuerySet):
                 query = Query(model, None, WhereNode)
         super(QuerySet, self).__init__(model=model, query=query)
 
+    def delete(self):
+        "Bulk deletion."
+        vals = ldapdb.connection.search_s(
+            self.model.base_dn,
+            ldap.SCOPE_SUBTREE,
+            filterstr=self.query._ldap_filter(),
+            attrlist=[],
+        )
+        # FIXME : there is probably a more efficient way to do this 
+        for dn, attrs in vals:
+            ldapdb.connection.delete_s(dn)
+
