@@ -103,8 +103,13 @@ class Compiler(object):
                 else:
                     negate = False
                 field = query.model._meta.get_field(fieldname)
-                attr_x = field.from_ldap(x[1].get(field.db_column, []), connection=self.connection).lower()
-                attr_y = field.from_ldap(y[1].get(field.db_column, []), connection=self.connection).lower()
+                attr_x = field.from_ldap(x[1].get(field.db_column, []), connection=self.connection)
+                attr_y = field.from_ldap(y[1].get(field.db_column, []), connection=self.connection)
+                # perform case insensitive comparison
+                if hasattr(attr_x, 'lower'):
+                    attr_x = attr_x.lower()
+                if hasattr(attr_y, 'lower'):
+                    attr_y = attr_y.lower()
                 val = negate and cmp(attr_y, attr_x) or cmp(attr_x, attr_y)
                 if val:
                     return val
