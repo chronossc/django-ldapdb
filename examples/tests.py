@@ -243,6 +243,10 @@ class AdminTestCase(BaseTestCase):
         self.assertContains(response, "foogroup")
         self.assertContains(response, "1000")
 
+    def test_group_delete(self):
+        response = self.client.post('/admin/examples/ldapgroup/foogroup/delete/', {'yes': 'post'})
+        self.assertRedirects(response, '/admin/examples/ldapgroup/')
+
     def test_group_search(self):
         response = self.client.get('/admin/examples/ldapgroup/?q=foo')
         self.assertContains(response, "Ldap groups")
@@ -271,3 +275,8 @@ class AdminTestCase(BaseTestCase):
         response = self.client.get('/admin/examples/ldapuser/foouser/')
         self.assertContains(response, "foouser")
         self.assertContains(response, "2000")
+
+    def test_user_delete(self):
+        response = self.client.post('/admin/examples/ldapuser/foouser/delete/', {'yes': 'post'})
+        self.assertRedirects(response, '/admin/examples/ldapuser/')
+
