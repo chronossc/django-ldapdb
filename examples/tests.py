@@ -68,12 +68,24 @@ class GroupTestCase(BaseTestCase):
         g.usernames = ['wizuser', 'baruser']
         g.save()
 
-    def test_filter(self):
+    def test_count(self):
+        # empty query
+        qs = LdapGroup.objects.none()
+        self.assertEquals(qs.count(), 0)
+
         qs = LdapGroup.objects.none()
         self.assertEquals(len(qs), 0)
 
+        # all query
+        qs = LdapGroup.objects.all()
+        self.assertEquals(qs.count(), 3)
+
         qs = LdapGroup.objects.all()
         self.assertEquals(len(qs), 3)
+
+    def test_filter(self):
+        qs = LdapGroup.objects.filter(name='foogroup')
+        self.assertEquals(qs.count(), 1)
 
         qs = LdapGroup.objects.filter(name='foogroup')
         self.assertEquals(len(qs), 1)
@@ -85,6 +97,9 @@ class GroupTestCase(BaseTestCase):
         self.assertEquals(g.usernames, ['foouser', 'baruser'])
 
         # try to filter non-existent entries
+        qs = LdapGroup.objects.filter(name='does_not_exist')
+        self.assertEquals(qs.count(), 0)
+
         qs = LdapGroup.objects.filter(name='does_not_exist')
         self.assertEquals(len(qs), 0)
 
@@ -141,17 +156,34 @@ class GroupTestCase(BaseTestCase):
         self.assertEquals(objs[1].gid, 1001)
         self.assertEquals(objs[2].gid, 1002)
 
+        # limit only
         qs = LdapGroup.objects.all()
+        objs = qs[:2]
+        self.assertEquals(objs.count(), 2)
+
         objs = qs[:2]
         self.assertEquals(len(objs), 2)
         self.assertEquals(objs[0].gid, 1000)
         self.assertEquals(objs[1].gid, 1001)
 
+        # offset only
         qs = LdapGroup.objects.all()
+        objs = qs[1:]
+        self.assertEquals(objs.count(), 2)
+
         objs = qs[1:]
         self.assertEquals(len(objs), 2)
         self.assertEquals(objs[0].gid, 1001)
         self.assertEquals(objs[1].gid, 1002)
+
+        # offset and limit
+        qs = LdapGroup.objects.all()
+        objs = qs[1:2]
+        self.assertEquals(objs.count(), 1)
+
+        objs = qs[1:2]
+        self.assertEquals(len(objs), 1)
+        self.assertEquals(objs[0].gid, 1001)
 
     def test_update(self):
         g = LdapGroup.objects.get(name='foogroup')
