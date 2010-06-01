@@ -169,6 +169,20 @@ class GroupTestCase(BaseTestCase):
         g.save()
         self.assertEquals(g.dn, 'cn=foogroup2,ou=groups,dc=nodomain')
 
+    def test_values(self):
+        qs = LdapGroup.objects.values('name')
+        self.assertEquals(len(qs), 3)
+        self.assertEquals(qs[0], {'name': 'foogroup'})
+        self.assertEquals(qs[1], {'name': 'bargroup'})
+        self.assertEquals(qs[2], {'name': 'wizgroup'})
+
+    def test_values_list(self):
+        qs = LdapGroup.objects.values_list('name')
+        self.assertEquals(len(qs), 3)
+        self.assertEquals(qs[0], ('foogroup',))
+        self.assertEquals(qs[1], ('bargroup',))
+        self.assertEquals(qs[2], ('wizgroup',))
+
     def test_delete(self):
         g = LdapGroup.objects.get(name='foogroup')
         g.delete()
