@@ -79,7 +79,7 @@ class GroupTestCase(BaseTestCase):
         self.assertEquals(len(qs), 1)
 
         g = qs[0]
-        self.assertEquals(g.dn, 'cn=foogroup,ou=groups,dc=nodomain')
+        self.assertEquals(g.dn, 'cn=foogroup,%s' % LdapGroup.base_dn)
         self.assertEquals(g.name, 'foogroup')
         self.assertEquals(g.gid, 1000)
         self.assertEquals(g.usernames, ['foouser', 'baruser'])
@@ -90,7 +90,7 @@ class GroupTestCase(BaseTestCase):
 
     def test_get(self):
         g = LdapGroup.objects.get(name='foogroup')
-        self.assertEquals(g.dn, 'cn=foogroup,ou=groups,dc=nodomain')
+        self.assertEquals(g.dn, 'cn=foogroup,%s' % LdapGroup.base_dn)
         self.assertEquals(g.name, 'foogroup')
         self.assertEquals(g.gid, 1000)
         self.assertEquals(g.usernames, ['foouser', 'baruser'])
@@ -167,7 +167,7 @@ class GroupTestCase(BaseTestCase):
         # make sure DN gets updated if we change the pk
         g.name = 'foogroup2'
         g.save()
-        self.assertEquals(g.dn, 'cn=foogroup2,ou=groups,dc=nodomain')
+        self.assertEquals(g.dn, 'cn=foogroup2,%s' % LdapGroup.base_dn)
 
     def test_values(self):
         qs = LdapGroup.objects.values('name')
@@ -228,7 +228,7 @@ class UserTestCase(BaseTestCase):
         # make sure DN gets updated if we change the pk
         u.username = 'foouser2'
         u.save()
-        self.assertEquals(u.dn, 'uid=foouser2,ou=people,dc=nodomain')
+        self.assertEquals(u.dn, 'uid=foouser2,%s' % LdapUser.base_dn)
 
 class AdminTestCase(BaseTestCase):
     fixtures = ['test_users.json']
