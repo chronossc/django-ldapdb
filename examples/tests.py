@@ -143,13 +143,9 @@ class GroupTestCase(BaseTestCase):
 
         qs = LdapGroup.objects.all()
         objs = qs[:2]
-        for o in objs:
-            return 
-        print objs
         self.assertEquals(len(objs), 2)
         self.assertEquals(objs[0].gid, 1000)
         self.assertEquals(objs[1].gid, 1001)
-        return
 
         qs = LdapGroup.objects.all()
         objs = qs[1:]
