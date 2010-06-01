@@ -9,5 +9,5 @@ setup(
     url = "http://opensource.bolloretelecom.eu/projects/django-ldapdb/",
     author = "Jeremy Laine",
     author_email = "jeremy.laine@bolloretelecom.eu",
-    packages = ['ldapdb'],
+    packages = ['ldapdb', 'ldapdb.models'],
     )
