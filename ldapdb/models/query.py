@@ -211,7 +211,15 @@ class Query(BaseQuery):
             )
         except ldap.NO_SUCH_OBJECT:
             return 0
-        return len(vals)
+
+        number = len(vals)
+
+        # apply limit and offset
+        number = max(0, number - self.low_mark)
+        if self.high_mark is not None:
+            number = min(number, self.high_mark - self.low_mark)
+
+        return number
 
     def get_compiler(self, using=None, connection=None):
         return Compiler(self, ldapdb.connection, using)
