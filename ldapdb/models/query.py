@@ -71,7 +71,12 @@ class Compiler(object):
 
     def results_iter(self):
         query = self.query
-        attrlist = [ x.db_column for x in query.model._meta.local_fields if x.db_column ]
+        if self.query.select_fields:
+            fields = self.query.select_fields
+        else:
+            fields = self.query.model._meta.fields
+
+        attrlist = [ x.db_column for x in fields if x.db_column ]
 
         try:
             vals = self.connection.search_s(
@@ -123,7 +128,7 @@ class Compiler(object):
                 pos += 1
                 continue
             row = []
-            for field in iter(query.model._meta.fields):
+            for field in iter(fields):
                 if field.attname == 'dn':
                     row.append(dn)
                 elif hasattr(field, 'from_ldap'):
