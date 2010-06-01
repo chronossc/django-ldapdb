@@ -70,7 +70,6 @@ class Compiler(object):
         self.using = using
 
     def results_iter(self):
-        query = self.query
         if self.query.select_fields:
             fields = self.query.select_fields
         else:
@@ -80,22 +79,21 @@ class Compiler(object):
 
         try:
             vals = self.connection.search_s(
-                query.model.base_dn,
+                self.query.model.base_dn,
                 ldap.SCOPE_SUBTREE,
-                filterstr=query._ldap_filter(),
+                filterstr=self.query._ldap_filter(),
                 attrlist=attrlist,
             )
         except ldap.NO_SUCH_OBJECT:
             return
-            raise query.model.DoesNotExist
 
         # perform sorting
-        if query.extra_order_by:
-            ordering = query.extra_order_by
-        elif not query.default_ordering:
-            ordering = query.order_by
+        if self.query.extra_order_by:
+            ordering = self.query.extra_order_by
+        elif not self.query.default_ordering:
+            ordering = self.query.order_by
         else:
-            ordering = query.order_by or query.model._meta.ordering
+            ordering = self.query.order_by or self.query.model._meta.ordering
         def cmpvals(x, y):
             for fieldname in ordering:
                 if fieldname.startswith('-'):
@@ -103,7 +101,7 @@ class Compiler(object):
                     negate = True
                 else:
                     negate = False
-                field = query.model._meta.get_field(fieldname)
+                field = self.query.model._meta.get_field(fieldname)
                 attr_x = field.from_ldap(x[1].get(field.db_column, []), connection=self.connection)
                 attr_y = field.from_ldap(y[1].get(field.db_column, []), connection=self.connection)
                 # perform case insensitive comparison
