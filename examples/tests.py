@@ -41,12 +41,12 @@ from examples.models import LdapUser, LdapGroup
 class BaseTestCase(TestCase):
     def setUp(self):
         cursor = ldapdb.connection._cursor()
-        for base in [LdapGroup.base_dn, LdapUser.base_dn]:
-            rdn = base.split(',')[0]
+        for dn in [LdapGroup.base_dn, LdapUser.base_dn]:
+            rdn = dn.split(',')[0]
             key, val = rdn.split('=')
             attrs = [('objectClass', ['top', 'organizationalUnit']), (key, [val])]
             try:
-                cursor.connection.add_s(base, attrs)
+                cursor.connection.add_s(dn, attrs)
             except ldap.ALREADY_EXISTS:
                 pass
 
@@ -271,6 +271,42 @@ class UserTestCase(BaseTestCase):
         u.username = 'foouser2'
         u.save()
         self.assertEquals(u.dn, 'uid=foouser2,%s' % LdapUser.base_dn)
+
+class ScopedTestCase(BaseTestCase):
+    def setUp(self):
+        super(ScopedTestCase, self).setUp()
+
+        cursor = ldapdb.connection._cursor()
+        self.scoped_dn = "ou=contacts,%s" % LdapGroup.base_dn
+        attrs = [('objectClass', ['top', 'organizationalUnit']), ("ou", ["contacts"])]
+        cursor.connection.add_s(self.scoped_dn, attrs)
+
+    def test_scope(self):
+        ScopedGroup = LdapGroup.scoped(self.scoped_dn)
+
+        # create group
+        g = LdapGroup()
+        g.name = "foogroup"
+        g.gid = 1000
+        g.save()
+
+        qs = LdapGroup.objects.all()
+        self.assertEquals(qs.count(), 1)
+
+        qs = ScopedGroup.objects.all()
+        self.assertEquals(qs.count(), 0)
+
+        # create scoped group
+        g2 = ScopedGroup()
+        g2.name = "scopedgroup"
+        g2.gid = 5000
+        g2.save()
+
+        qs = LdapGroup.objects.all()
+        self.assertEquals(qs.count(), 2)
+
+        qs = ScopedGroup.objects.all()
+        self.assertEquals(qs.count(), 1)
 
 class AdminTestCase(BaseTestCase):
     fixtures = ['test_users.json']
