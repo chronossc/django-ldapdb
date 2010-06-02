@@ -85,8 +85,8 @@ class Model(django.db.models.base.Model):
         Build the Relative Distinguished Name for this entry.
         """
         bits = []
-        for field in self._meta.local_fields:
-            if field.primary_key:
+        for field in self._meta.fields:
+            if field.db_column and field.primary_key:
                 bits.append("%s=%s" % (field.db_column, getattr(self, field.name)))
         if not len(bits):
             raise Exception("Could not build Distinguished Name")
@@ -114,7 +114,7 @@ class Model(django.db.models.base.Model):
             entry = [('objectClass', self.object_classes)]
             new_dn = self.build_dn()
 
-            for field in self._meta.local_fields:
+            for field in self._meta.fields:
                 if not field.db_column:
                     continue
                 value = getattr(self, field.name)
@@ -132,7 +132,7 @@ class Model(django.db.models.base.Model):
             record_exists = True
             modlist = []
             orig = self.__class__.objects.get(pk=self.saved_pk)
-            for field in self._meta.local_fields:
+            for field in self._meta.fields:
                 if not field.db_column:
                     continue
                 old_value = getattr(orig, field.name, None)
