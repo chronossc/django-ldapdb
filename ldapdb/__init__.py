@@ -38,7 +38,7 @@ from django.conf import settings
 from django.db.backends import BaseDatabaseFeatures, BaseDatabaseOperations
 
 def escape_ldap_filter(value):
-    value = str(value)
+    value = unicode(value)
     return value.replace('\\', '\\5c') \
                 .replace('*', '\\2a') \
                 .replace('(', '\\28') \
