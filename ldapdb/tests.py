@@ -41,6 +41,7 @@ from ldapdb.models.query import WhereNode
 
 class WhereTestCase(TestCase):
     def test_escape(self):
+        self.assertEquals(escape_ldap_filter(u'fôöbàr'), u'fôöbàr')
         self.assertEquals(escape_ldap_filter('foo*bar'), 'foo\\2abar')
         self.assertEquals(escape_ldap_filter('foo(bar'), 'foo\\28bar')
         self.assertEquals(escape_ldap_filter('foo)bar'), 'foo\\29bar')
