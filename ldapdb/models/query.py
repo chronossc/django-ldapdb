@@ -94,7 +94,7 @@ class Compiler(object):
         try:
             vals = self.connection.search_s(
                 self.query.model.base_dn,
-                ldap.SCOPE_SUBTREE,
+                self.query.model.search_scope,
                 filterstr=self.query._ldap_filter(),
                 attrlist=attrlist,
             )
@@ -219,7 +219,7 @@ class Query(BaseQuery):
         try:
             vals = ldapdb.connection.search_s(
                 self.model.base_dn,
-                ldap.SCOPE_SUBTREE,
+                self.model.search_scope,
                 filterstr=self._ldap_filter(),
                 attrlist=[],
             )
@@ -260,7 +260,7 @@ class QuerySet(BaseQuerySet):
         try:
             vals = ldapdb.connection.search_s(
                 self.model.base_dn,
-                ldap.SCOPE_SUBTREE,
+                self.model.search_scope,
                 filterstr=self.query._ldap_filter(),
                 attrlist=[],
             )
