@@ -68,6 +68,7 @@ class Model(django.db.models.base.Model):
 
     # meta-data
     base_dn = None
+    search_scope = ldap.SCOPE_SUBTREE
     object_classes = ['top']
 
     def __init__(self, *args, **kwargs):
