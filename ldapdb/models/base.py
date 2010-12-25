@@ -161,6 +161,11 @@ class Model(django.db.models.base.Model):
         self.saved_pk = self.pk
         signals.post_save.send(sender=self.__class__, instance=self, created=(not record_exists))
 
+    def validate_unique(self, exclude=None):
+        # FIXME: we are bypassing the unicity checks, as they break
+        # the admin interface
+        pass
+
     @classmethod
     def scoped(base_class, base_dn):
         """
