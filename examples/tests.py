@@ -376,9 +376,17 @@ class AdminTestCase(BaseTestCase):
         self.assertContains(response, "foogroup")
         self.assertContains(response, "1000")
 
+    def test_group_add(self):
+        response = self.client.post('/admin/examples/ldapgroup/add/', {'gid': '1002', 'name': 'wizgroup'})
+        self.assertRedirects(response, '/admin/examples/ldapgroup/')
+        qs = LdapGroup.objects.all()
+        self.assertEquals(qs.count(), 3)
+
     def test_group_delete(self):
         response = self.client.post('/admin/examples/ldapgroup/foogroup/delete/', {'yes': 'post'})
         self.assertRedirects(response, '/admin/examples/ldapgroup/')
+        qs = LdapGroup.objects.all()
+        self.assertEquals(qs.count(), 1)
 
     def test_group_search(self):
         response = self.client.get('/admin/examples/ldapgroup/?q=foo')
