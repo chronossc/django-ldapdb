@@ -32,6 +32,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+from django.db.models import Q
 from django.test import TestCase
 
 import ldap
@@ -98,17 +99,37 @@ class GroupTestCase(BaseTestCase):
         self.assertEquals(len(qs), 3)
 
     def test_ldap_filter(self):
+        # single filter
         qs = LdapGroup.objects.filter(name='foogroup')
         self.assertEquals(qs.query._ldap_filter(), '(&(objectClass=posixGroup)(cn=foogroup))')
 
-        qs = LdapGroup.objects.filter(name='foogroup', gid=1000)
+        qs = LdapGroup.objects.filter(Q(name='foogroup'))
+        self.assertEquals(qs.query._ldap_filter(), '(&(objectClass=posixGroup)(cn=foogroup))')
+
+        # AND filter
+        qs = LdapGroup.objects.filter(gid=1000, name='foogroup')
         self.assertEquals(qs.query._ldap_filter(), '(&(objectClass=posixGroup)(&(gidNumber=1000)(cn=foogroup)))')
 
+        qs = LdapGroup.objects.filter(Q(gid=1000) & Q(name='foogroup'))
+        self.assertEquals(qs.query._ldap_filter(), '(&(objectClass=posixGroup)(&(gidNumber=1000)(cn=foogroup)))')
+
+        # OR filter
+        qs = LdapGroup.objects.filter(Q(gid=1000) | Q(name='foogroup'))
+        self.assertEquals(qs.query._ldap_filter(), '(&(objectClass=posixGroup)(|(gidNumber=1000)(cn=foogroup)))')
+
+        # single exclusion
         qs = LdapGroup.objects.exclude(name='foogroup')
         self.assertEquals(qs.query._ldap_filter(), '(&(objectClass=posixGroup)(!(cn=foogroup)))')
         
+        qs = LdapGroup.objects.filter(~Q(name='foogroup'))
+        self.assertEquals(qs.query._ldap_filter(), '(&(objectClass=posixGroup)(!(cn=foogroup)))')
+
+        # multiple exclusion
         qs = LdapGroup.objects.exclude(name='foogroup', gid=1000)
         self.assertEquals(qs.query._ldap_filter(), '(&(objectClass=posixGroup)(!(&(gidNumber=1000)(cn=foogroup))))')
+
+        qs = LdapGroup.objects.filter(name='foogroup').exclude(gid=1000)
+        self.assertEquals(qs.query._ldap_filter(), '(&(objectClass=posixGroup)(&(cn=foogroup)(!(gidNumber=1000))))')
 
     def test_filter(self):
         qs = LdapGroup.objects.filter(name='foogroup')
