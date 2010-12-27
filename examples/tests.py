@@ -97,6 +97,19 @@ class GroupTestCase(BaseTestCase):
         qs = LdapGroup.objects.all()
         self.assertEquals(len(qs), 3)
 
+    def test_ldap_filter(self):
+        qs = LdapGroup.objects.filter(name='foogroup')
+        self.assertEquals(qs.query._ldap_filter(), '(&(objectClass=posixGroup)(cn=foogroup))')
+
+        qs = LdapGroup.objects.filter(name='foogroup', gid=1000)
+        self.assertEquals(qs.query._ldap_filter(), '(&(objectClass=posixGroup)(&(gidNumber=1000)(cn=foogroup)))')
+
+        qs = LdapGroup.objects.exclude(name='foogroup')
+        self.assertEquals(qs.query._ldap_filter(), '(&(objectClass=posixGroup)(!(cn=foogroup)))')
+        
+        qs = LdapGroup.objects.exclude(name='foogroup', gid=1000)
+        self.assertEquals(qs.query._ldap_filter(), '(&(objectClass=posixGroup)(!(&(gidNumber=1000)(cn=foogroup))))')
+
     def test_filter(self):
         qs = LdapGroup.objects.filter(name='foogroup')
         self.assertEquals(qs.count(), 1)

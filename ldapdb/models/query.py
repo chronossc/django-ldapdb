@@ -190,10 +190,11 @@ class WhereNode(BaseWhereNode):
                 else:
                     clause = '(|%s)' % ''.join(equal_bits)
 
-            if self.negated:
-                bits.append('(!%s)' % clause)
-            else:
-                bits.append(clause)
+            bits.append(clause)
+
+        if not len(bits):
+            return '', []
+
         if len(bits) == 1:
             sql_string = bits[0]
         elif self.connector == AND:
@@ -202,6 +203,10 @@ class WhereNode(BaseWhereNode):
             sql_string = '(|%s)' % ''.join(bits)
         else:
             raise Exception("Unhandled WHERE connector: %s" % self.connector)
+
+        if self.negated:
+            sql_string = ('(!%s)' % sql_string)
+
         return sql_string, []
 
 class Query(BaseQuery):
