@@ -238,6 +238,9 @@ class Query(BaseQuery):
     def get_compiler(self, using=None, connection=None):
         return Compiler(self, ldapdb.connection, using)
 
+    def has_results(self, using):
+        return self.get_count() != 0
+
     def results_iter(self):
         "For django 1.1 compatibility"
         return self.get_compiler().results_iter()
