@@ -50,7 +50,8 @@ class DatabaseCursor(object):
         self.connection = ldap_connection
 
 class DatabaseFeatures(BaseDatabaseFeatures):
-    pass
+    def __init__(self, connection):
+        self.connection = connection
 
 class DatabaseOperations(BaseDatabaseOperations):
     def quote_name(self, name):
@@ -60,7 +61,7 @@ class LdapConnection(object):
     def __init__(self):
         self.connection = None
         self.charset = "utf-8"
-        self.features = DatabaseFeatures()
+        self.features = DatabaseFeatures(self)
         self.ops = DatabaseOperations()
 
     def _cursor(self):
