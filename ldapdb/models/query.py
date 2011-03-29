@@ -56,8 +56,13 @@ class Constraint(BaseConstraint):
     """
     An object that can be passed to WhereNode.add() and knows how to
     pre-process itself prior to including in the WhereNode.
+
+    NOTES: 
+    - we redefine this class, because when self.field is None calls
+    Field().get_db_prep_lookup(), which short-circuits our LDAP-specific code.
+    - the connection argument defaults to None for django 1.1 compatibility
     """
-    def process(self, lookup_type, value):
+    def process(self, lookup_type, value, connection=None):
         """
         Returns a tuple of data suitable for inclusion in a WhereNode
         instance.
@@ -67,10 +72,12 @@ class Constraint(BaseConstraint):
 
         try:
             if self.field:
-                params = self.field.get_db_prep_lookup(lookup_type, value)
+                params = self.field.get_db_prep_lookup(lookup_type, value,
+                    connection=connection, prepared=True)
                 db_type = self.field.db_type()
             else:
-                params = CharField().get_db_prep_lookup(lookup_type, value)
+                params = CharField().get_db_prep_lookup(lookup_type, value,
+                    connection=connection, prepared=True)
                 db_type = None
         except ObjectDoesNotExist:
             raise EmptyShortCircuit

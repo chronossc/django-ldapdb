@@ -47,7 +47,7 @@ class CharField(fields.CharField):
         else:
             return value[0].decode(connection.charset)
 
-    def get_db_prep_lookup(self, lookup_type, value):
+    def get_db_prep_lookup(self, lookup_type, value, connection, prepared=False):
         "Returns field's value prepared for database lookup."
         if lookup_type == 'endswith':
             return ["*%s" % escape_ldap_filter(value)]
@@ -87,7 +87,7 @@ class ImageField(fields.Field):
         else:
             return value[0]
 
-    def get_db_prep_lookup(self, lookup_type, value):
+    def get_db_prep_lookup(self, lookup_type, value, connection, prepared=False):
         "Returns field's value prepared for database lookup."
         return [self.get_prep_lookup(lookup_type, value)]
 
@@ -105,7 +105,7 @@ class IntegerField(fields.IntegerField):
         else:
             return int(value[0])
         
-    def get_db_prep_lookup(self, lookup_type, value):
+    def get_db_prep_lookup(self, lookup_type, value, connection, prepared=False):
         "Returns field's value prepared for database lookup."
         return [self.get_prep_lookup(lookup_type, value)]
 
@@ -124,7 +124,7 @@ class ListField(fields.Field):
     def from_ldap(self, value, connection):
         return value
 
-    def get_db_prep_lookup(self, lookup_type, value):
+    def get_db_prep_lookup(self, lookup_type, value, connection, prepared=False):
         "Returns field's value prepared for database lookup."
         return [self.get_prep_lookup(lookup_type, value)]
 
