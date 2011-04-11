@@ -56,14 +56,6 @@ class Model(django.db.models.base.Model):
         super(Model, self).__init__(*args, **kwargs)
         self.saved_pk = self.pk
 
-    def _collect_sub_objects(self, seen_objs, parent=None, nullable=False):
-        """
-        This private API seems to be called by the admin interface in django 1.2
-        """
-        pk_val = self._get_pk_val()
-        seen_objs.add(self.__class__, pk_val, self,
-                      type(parent), parent, nullable)
-
     def build_rdn(self):
         """
         Build the Relative Distinguished Name for this entry.
