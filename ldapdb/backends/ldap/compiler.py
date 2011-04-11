@@ -35,6 +35,7 @@
 import ldap
 
 from django.db.models.sql import compiler
+from django.db.models.sql.where import AND, OR
 
 def get_lookup_operator(lookup_type):
     if lookup_type == 'gte':
@@ -44,11 +45,17 @@ def get_lookup_operator(lookup_type):
     else:
         return '='
 
-def where_as_sql(self, qn=None, connection=None):
+def query_as_ldap(query):
+    filterstr = ''.join(['(objectClass=%s)' % cls for cls in query.model.object_classes])
+    sql, params = where_as_ldap(query.where)
+    filterstr += sql
+    return '(&%s)' % filterstr
+
+def where_as_ldap(self):
     bits = []
     for item in self.children:
         if hasattr(item, 'as_sql'):
-            sql, params = where_as_sql(item, qn=qn, connection=connection)
+            sql, params = where_as_ldap(item)
             bits.append(sql)
             continue
 
@@ -85,12 +92,6 @@ class SQLCompiler(object):
         self.connection = connection
         self.using = using
 
-    def _ldap_filter(self):
-        filterstr = ''.join(['(objectClass=%s)' % cls for cls in self.query.model.object_classes])
-        sql, params = where_as_sql(self.query.where)
-        filterstr += sql
-        return '(&%s)' % filterstr
-
     def results_iter(self):
         if self.query.select_fields:
             fields = self.query.select_fields
@@ -103,7 +104,7 @@ class SQLCompiler(object):
             vals = self.connection.search_s(
                 self.query.model.base_dn,
                 self.query.model.search_scope,
-                filterstr=self._ldap_filter(),
+                filterstr=query_as_ldap(self.query),
                 attrlist=attrlist,
             )
         except ldap.NO_SUCH_OBJECT:
@@ -167,7 +168,7 @@ class SQLDeleteCompiler(compiler.SQLDeleteCompiler, SQLCompiler):
             vals = self.connection.search_s(
                 self.query.model.base_dn,
                 self.query.model.search_scope,
-                filterstr=self._ldap_filter(),
+                filterstr=query_as_ldap(self.query),
                 attrlist=[],
             )
         except ldap.NO_SUCH_OBJECT:
