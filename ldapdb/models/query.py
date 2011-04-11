@@ -93,20 +93,3 @@ class QuerySet(BaseQuerySet):
             query = Query(model, WhereNode)
         super(QuerySet, self).__init__(model=model, query=query, using=using)
 
-    def delete(self):
-        "Bulk deletion."
-        connection = connections[self.db]
-        try:
-            vals = connection.search_s(
-                self.model.base_dn,
-                self.model.search_scope,
-                filterstr=compiler.query_as_ldap(self.query),
-                attrlist=[],
-            )
-        except ldap.NO_SUCH_OBJECT:
-            return
-
-        # FIXME : there is probably a more efficient way to do this 
-        for dn, attrs in vals:
-            connection.delete_s(dn)
-
