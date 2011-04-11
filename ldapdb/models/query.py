@@ -38,7 +38,7 @@ import ldap
 from django.db import connections
 from django.db.models.query import QuerySet as BaseQuerySet
 from django.db.models.query_utils import Q
-from django.db.models.sql import Query as BaseQuery
+from django.db.models.sql import Query
 from django.db.models.sql.where import WhereNode as BaseWhereNode, Constraint as BaseConstraint, AND, OR
 
 from ldapdb.backends.ldap import compiler
@@ -86,31 +86,6 @@ class WhereNode(BaseWhereNode):
         if hasattr(obj, "process"):
             obj = Constraint(obj.alias, obj.col, obj.field)
         super(WhereNode, self).add((obj, lookup_type, value), connector)
-
-class Query(BaseQuery):
-    def get_count(self, using):
-        connection = connections[using]
-        try:
-            vals = connection.search_s(
-                self.model.base_dn,
-                self.model.search_scope,
-                filterstr=compiler.query_as_ldap(self),
-                attrlist=[],
-            )
-        except ldap.NO_SUCH_OBJECT:
-            return 0
-
-        number = len(vals)
-
-        # apply limit and offset
-        number = max(0, number - self.low_mark)
-        if self.high_mark is not None:
-            number = min(number, self.high_mark - self.low_mark)
-
-        return number
-
-    def has_results(self, using):
-        return self.get_count(using) != 0
 
 class QuerySet(BaseQuerySet):
     def __init__(self, model=None, query=None, using=None):
