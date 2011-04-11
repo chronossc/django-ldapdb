@@ -32,10 +32,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import ldap
-
 from django.conf import settings
-from django.db.backends import BaseDatabaseFeatures, BaseDatabaseOperations
+from ldapdb.backends.ldap.base import DatabaseWrapper
 
 def escape_ldap_filter(value):
     value = unicode(value)
@@ -45,64 +43,9 @@ def escape_ldap_filter(value):
                 .replace(')', '\\29') \
                 .replace('\0', '\\00')
 
-class DatabaseCursor(object):
-    def __init__(self, ldap_connection):
-        self.connection = ldap_connection
-
-class DatabaseFeatures(BaseDatabaseFeatures):
-    def __init__(self, connection):
-        self.connection = connection
-
-class DatabaseOperations(BaseDatabaseOperations):
-    def quote_name(self, name):
-        return name
-
-class DatabaseWrapper(object):
-    def __init__(self, settings_dict={}, alias='ldap'):
-        self.settings_dict = settings_dict
-        self.connection = None
-        self.charset = "utf-8"
-        self.features = DatabaseFeatures(self)
-        self.ops = DatabaseOperations()
-
-    def close(self):
-        pass
-
-    def _cursor(self):
-        if self.connection is None:
-            self.connection = ldap.initialize(self.settings_dict['NAME'])
-            self.connection.simple_bind_s(
-                self.settings_dict['USER'],
-                self.settings_dict['PASSWORD'])
-        return DatabaseCursor(self.connection)
-
-    def add_s(self, dn, modlist):
-        cursor = self._cursor()
-        return cursor.connection.add_s(dn.encode(self.charset), modlist)
-
-    def delete_s(self, dn):
-        cursor = self._cursor()
-        return cursor.connection.delete_s(dn.encode(self.charset))
-
-    def modify_s(self, dn, modlist):
-        cursor = self._cursor()
-        return cursor.connection.modify_s(dn.encode(self.charset), modlist)
-
-    def rename_s(self, dn, newrdn):
-        cursor = self._cursor()
-        return cursor.connection.rename_s(dn.encode(self.charset), newrdn.encode(self.charset))
-
-    def search_s(self, base, scope, filterstr, attrlist):
-        cursor = self._cursor()
-        results = cursor.connection.search_s(base, scope, filterstr.encode(self.charset), attrlist)
-        output = []
-        for dn, attrs in results:
-            output.append((dn.decode(self.charset), attrs))
-        return output
-
 # FIXME: is this the right place to initialize the LDAP connection?
 connection = DatabaseWrapper({
     'NAME': settings.LDAPDB_SERVER_URI,
     'USER': settings.LDAPDB_BIND_DN,
-    'PASSWORD': settings.LDAPDB_BIND_PASSWORD})
+    'PASSWORD': settings.LDAPDB_BIND_PASSWORD}, 'ldap')
 
