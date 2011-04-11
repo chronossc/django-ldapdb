@@ -74,6 +74,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         self.creation = DatabaseCreation(self)
         self.features = DatabaseFeatures(self)
         self.ops = DatabaseOperations()
+        self.settings_dict['SUPPORTS_TRANSACTIONS'] = False
 
     def close(self):
         pass

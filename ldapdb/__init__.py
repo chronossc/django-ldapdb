@@ -52,8 +52,7 @@ if hasattr(settings, 'LDAPDB_SERVER_URI'):
         'ENGINE': 'ldapdb.backends.ldap',
         'NAME': settings.LDAPDB_SERVER_URI,
         'USER': settings.LDAPDB_BIND_DN,
-        'PASSWORD': settings.LDAPDB_BIND_PASSWORD,
-        'SUPPORTS_TRANSACTIONS': False}
+        'PASSWORD': settings.LDAPDB_BIND_PASSWORD}
     connection = db.connections['ldap']
 
     # Add the LDAP router
