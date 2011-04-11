@@ -45,14 +45,16 @@ def escape_ldap_filter(value):
                 .replace(')', '\\29') \
                 .replace('\0', '\\00')
 
-# Add the LDAP backend
-settings.DATABASES['ldap'] = {
-    'ENGINE': 'ldapdb.backends.ldap',
-    'NAME': settings.LDAPDB_SERVER_URI,
-    'USER': settings.LDAPDB_BIND_DN,
-    'PASSWORD': settings.LDAPDB_BIND_PASSWORD,
-    'SUPPORTS_TRANSACTIONS': False}
-connection = db.connections['ldap']
+# Legacy single database support
+if hasattr(settings, 'LDAPDB_SERVER_URI'):
+    # Add the LDAP backend
+    settings.DATABASES['ldap'] = {
+        'ENGINE': 'ldapdb.backends.ldap',
+        'NAME': settings.LDAPDB_SERVER_URI,
+        'USER': settings.LDAPDB_BIND_DN,
+        'PASSWORD': settings.LDAPDB_BIND_PASSWORD,
+        'SUPPORTS_TRANSACTIONS': False}
+    connection = db.connections['ldap']
 
-# Add the LDAP router
-db.router.routers.append(Router())
+    # Add the LDAP router
+    db.router.routers.append(Router())
