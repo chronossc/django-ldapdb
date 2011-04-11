@@ -34,7 +34,7 @@
 
 import ldap
 
-from django.db.models.sql import compiler
+from django.db.models.sql import aggregates, compiler
 from django.db.models.sql.where import AND, OR
 
 def get_lookup_operator(lookup_type):
@@ -91,6 +91,27 @@ class SQLCompiler(object):
         self.query = query
         self.connection = connection
         self.using = using
+
+    def execute_sql(self, result_type=compiler.MULTI):
+        if result_type !=compiler.SINGLE:
+            raise Exception("LDAP does not support MULTI queries")
+
+        try:
+            vals = self.connection.search_s(
+                self.query.model.base_dn,
+                self.query.model.search_scope,
+                filterstr=query_as_ldap(self.query),
+                attrlist=['dn'],
+            )
+        except ldap.NO_SUCH_OBJECT:
+            vals = []
+
+        output = []
+        for key, aggregate in self.query.aggregate_select.items():
+            if not isinstance(aggregate, aggregates.Count):
+                raise Exception("Unsupported aggregate %s" % aggregate)
+            output.append(len(vals))
+        return output
 
     def results_iter(self):
         if self.query.select_fields:
