@@ -45,6 +45,8 @@ class DatabaseFeatures(BaseDatabaseFeatures):
         self.connection = connection
 
 class DatabaseOperations(BaseDatabaseOperations):
+    compiler_module = "ldapdb.backends.ldap.compiler"
+
     def quote_name(self, name):
         return name
 
