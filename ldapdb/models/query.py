@@ -60,9 +60,8 @@ class Constraint(BaseConstraint):
     NOTES: 
     - we redefine this class, because when self.field is None calls
     Field().get_db_prep_lookup(), which short-circuits our LDAP-specific code.
-    - the connection argument defaults to None for django 1.1 compatibility
     """
-    def process(self, lookup_type, value, connection=None):
+    def process(self, lookup_type, value, connection):
         """
         Returns a tuple of data suitable for inclusion in a WhereNode
         instance.
@@ -180,22 +179,11 @@ class WhereNode(BaseWhereNode):
 
             constraint, lookup_type, y, values = item
             comp = get_lookup_operator(lookup_type)
-            if hasattr(constraint, "col"):
-                # django 1.2
-                column = constraint.col
-                if lookup_type == 'in':
-                    equal_bits = [ "(%s%s%s)" % (column, comp, value) for value in values ]
-                    clause = '(|%s)' % ''.join(equal_bits)
-                else:
-                    clause = "(%s%s%s)" % (constraint.col, comp, values)
+            if lookup_type == 'in':
+                equal_bits = [ "(%s%s%s)" % (constraint.col, comp, value) for value in values ]
+                clause = '(|%s)' % ''.join(equal_bits)
             else:
-                # django 1.1
-                (table, column, db_type) = constraint
-                equal_bits = [ "(%s%s%s)" % (column, comp, value) for value in values ]
-                if len(equal_bits) == 1:
-                    clause = equal_bits[0]
-                else:
-                    clause = '(|%s)' % ''.join(equal_bits)
+                clause = "(%s%s%s)" % (constraint.col, comp, values)
 
             bits.append(clause)
 
@@ -227,7 +215,7 @@ class Query(BaseQuery):
         filterstr += sql
         return '(&%s)' % filterstr
 
-    def get_count(self, using=None):
+    def get_count(self, using):
         try:
             vals = ldapdb.connection.search_s(
                 self.model.base_dn,
@@ -251,24 +239,13 @@ class Query(BaseQuery):
         return Compiler(self, ldapdb.connection, using)
 
     def has_results(self, using):
-        return self.get_count() != 0
-
-    def results_iter(self):
-        "For django 1.1 compatibility"
-        return self.get_compiler().results_iter()
+        return self.get_count(using) != 0
 
 class QuerySet(BaseQuerySet):
     def __init__(self, model=None, query=None, using=None):
         if not query:
-            import inspect
-            spec = inspect.getargspec(BaseQuery.__init__)
-            if len(spec[0]) == 3:
-                # django 1.2
-                query = Query(model, WhereNode)
-            else:
-                # django 1.1
-                query = Query(model, None, WhereNode)
-        super(QuerySet, self).__init__(model=model, query=query)
+            query = Query(model, WhereNode)
+        super(QuerySet, self).__init__(model=model, query=query, using=using)
 
     def delete(self):
         "Bulk deletion."
