@@ -37,35 +37,41 @@ from django.db.models import Q
 from django.test import TestCase
 
 import ldap
-import ldapdb
+
 from ldapdb.backends.ldap.compiler import query_as_ldap
 from examples.models import LdapUser, LdapGroup
-      
+
 class BaseTestCase(TestCase):
+    def _add_base_dn(self, model):
+        using = router.db_for_write(model)
+        connection = connections[using]
+
+        rdn = model.base_dn.split(',')[0]
+        key, val = rdn.split('=')
+        attrs = [('objectClass', ['top', 'organizationalUnit']), (key, [val])]
+        try:
+            connection.add_s(model.base_dn, attrs)
+        except ldap.ALREADY_EXISTS:
+            pass
+
+    def _remove_base_dn(self, model):
+        using = router.db_for_write(model)
+        connection = connections[using]
+
+        try:
+            results = connection.search_s(model.base_dn, ldap.SCOPE_SUBTREE)
+            for dn, attrs in reversed(results):
+                connection.delete_s(dn)
+        except ldap.NO_SUCH_OBJECT:
+            pass
+
     def setUp(self):
         for model in [LdapGroup, LdapUser]:
-            using = router.db_for_write(model)
-            connection = connections[using]
-
-            rdn = model.base_dn.split(',')[0]
-            key, val = rdn.split('=')
-            attrs = [('objectClass', ['top', 'organizationalUnit']), (key, [val])]
-            try:
-                connection.add_s(model.base_dn, attrs)
-            except ldap.ALREADY_EXISTS:
-                pass
+            self._add_base_dn(model)
 
     def tearDown(self):
         for model in [LdapGroup, LdapUser]:
-            using = router.db_for_write(model)
-            connection = connections[using]
-
-            try:
-                results = connection.search_s(model.base_dn, ldap.SCOPE_SUBTREE)
-                for dn, attrs in reversed(results):
-                    connection.delete_s(dn)
-            except ldap.NO_SUCH_OBJECT:
-                pass
+            self._remove_base_dn(model)
 
 class GroupTestCase(BaseTestCase):
     def setUp(self):
@@ -316,12 +322,15 @@ class ScopedTestCase(BaseTestCase):
     def setUp(self):
         super(ScopedTestCase, self).setUp()
 
-        self.scoped_dn = "ou=contacts,%s" % LdapGroup.base_dn
-        attrs = [('objectClass', ['top', 'organizationalUnit']), ("ou", ["contacts"])]
-        ldapdb.connection.add_s(self.scoped_dn, attrs)
+        self.scoped_model = LdapGroup.scoped("ou=contacts,%s" % LdapGroup.base_dn)
+        self._add_base_dn(self.scoped_model)
+
+    def tearDown(self):
+        self._remove_base_dn(self.scoped_model)
+        super(ScopedTestCase, self).tearDown()
 
     def test_scope(self):
-        ScopedGroup = LdapGroup.scoped(self.scoped_dn)
+        ScopedGroup = self.scoped_model
 
         # create group
         g = LdapGroup()
