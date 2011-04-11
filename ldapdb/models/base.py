@@ -40,31 +40,11 @@ from django.db import connections, router
 from django.db.models import signals
 
 import ldapdb
-from ldapdb.models.query import QuerySet
-
-class ModelBase(django.db.models.base.ModelBase):
-    """
-    Metaclass for all LDAP models.
-    """
-    def __new__(cls, name, bases, attrs):
-        super_new = super(ModelBase, cls).__new__
-        new_class = super_new(cls, name, bases, attrs)
-
-        # patch manager to use our own QuerySet class
-        if not new_class._meta.abstract:
-            def get_query_set():
-                return QuerySet(new_class)
-            new_class.objects.get_query_set = get_query_set
-            new_class._default_manager.get_query_set = get_query_set
-
-        return new_class
 
 class Model(django.db.models.base.Model):
     """
     Base class for all LDAP models.
     """
-    __metaclass__ = ModelBase
-
     dn = django.db.models.fields.CharField(max_length=200)
 
     # meta-data
