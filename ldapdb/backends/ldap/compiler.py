@@ -32,6 +32,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+import ldap
+
 class SQLCompiler(object):
     def __init__(self, query, connection, using):
         self.query = query
@@ -82,3 +84,26 @@ class SQLCompiler(object):
                 if val:
                     return val
             return 0
+        vals = sorted(vals, cmp=cmpvals)
+
+        # process results
+        pos = 0
+        for dn, attrs in vals:
+            # FIXME : This is not optimal, we retrieve more results than we need
+            # but there is probably no other options as we can't perform ordering
+            # server side.
+            if (self.query.low_mark and pos < self.query.low_mark) or \
+               (self.query.high_mark is not None and pos >= self.query.high_mark):
+                pos += 1
+                continue
+            row = []
+            for field in iter(fields):
+                if field.attname == 'dn':
+                    row.append(dn)
+                elif hasattr(field, 'from_ldap'):
+                    row.append(field.from_ldap(attrs.get(field.db_column, []), connection=self.connection))
+                else:
+                    row.append(None)
+            yield row
+            pos += 1
+
