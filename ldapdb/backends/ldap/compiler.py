@@ -96,6 +96,10 @@ class SQLCompiler(object):
         if result_type !=compiler.SINGLE:
             raise Exception("LDAP does not support MULTI queries")
 
+        for key, aggregate in self.query.aggregate_select.items():
+            if not isinstance(aggregate, aggregates.Count):
+                raise Exception("Unsupported aggregate %s" % aggregate)
+
         try:
             vals = self.connection.search_s(
                 self.query.model.base_dn,
@@ -106,11 +110,17 @@ class SQLCompiler(object):
         except ldap.NO_SUCH_OBJECT:
             vals = []
 
+        if not vals:
+            return None
+
         output = []
+        for alias, col in self.query.extra_select.iteritems():
+            output.append(col[0])
         for key, aggregate in self.query.aggregate_select.items():
-            if not isinstance(aggregate, aggregates.Count):
-                raise Exception("Unsupported aggregate %s" % aggregate)
-            output.append(len(vals))
+            if isinstance(aggregate, aggregates.Count):
+                output.append(len(vals))
+            else:
+                output.append(None)
         return output
 
     def results_iter(self):
@@ -190,7 +200,7 @@ class SQLDeleteCompiler(compiler.SQLDeleteCompiler, SQLCompiler):
                 self.query.model.base_dn,
                 self.query.model.search_scope,
                 filterstr=query_as_ldap(self.query),
-                attrlist=[],
+                attrlist=['dn'],
             )
         except ldap.NO_SUCH_OBJECT:
             return
