@@ -44,14 +44,6 @@ import ldapdb
 from ldapdb.backends.ldap import compiler
 from ldapdb.models.fields import CharField
 
-def get_lookup_operator(lookup_type):
-    if lookup_type == 'gte':
-        return '>='
-    elif lookup_type == 'lte':
-        return '<='
-    else:
-        return '='
-
 class Constraint(BaseConstraint):
     """
     An object that can be passed to WhereNode.add() and knows how to
@@ -95,58 +87,13 @@ class WhereNode(BaseWhereNode):
             obj = Constraint(obj.alias, obj.col, obj.field)
         super(WhereNode, self).add((obj, lookup_type, value), connector)
 
-    def as_sql(self, qn=None, connection=None):
-        bits = []
-        for item in self.children:
-            if hasattr(item, 'as_sql'):
-                sql, params = item.as_sql(qn=qn, connection=connection)
-                bits.append(sql)
-                continue
-
-            constraint, lookup_type, y, values = item
-            comp = get_lookup_operator(lookup_type)
-            if lookup_type == 'in':
-                equal_bits = [ "(%s%s%s)" % (constraint.col, comp, value) for value in values ]
-                clause = '(|%s)' % ''.join(equal_bits)
-            else:
-                clause = "(%s%s%s)" % (constraint.col, comp, values)
-
-            bits.append(clause)
-
-        if not len(bits):
-            return '', []
-
-        if len(bits) == 1:
-            sql_string = bits[0]
-        elif self.connector == AND:
-            sql_string = '(&%s)' % ''.join(bits)
-        elif self.connector == OR:
-            sql_string = '(|%s)' % ''.join(bits)
-        else:
-            raise Exception("Unhandled WHERE connector: %s" % self.connector)
-
-        if self.negated:
-            sql_string = ('(!%s)' % sql_string)
-
-        return sql_string, []
-
 class Query(BaseQuery):
-    def __init__(self, *args, **kwargs):
-        super(Query, self).__init__(*args, **kwargs)
-        self.connection = ldapdb.connection
-
-    def _ldap_filter(self):
-        filterstr = ''.join(['(objectClass=%s)' % cls for cls in self.model.object_classes])
-        sql, params = self.where.as_sql()
-        filterstr += sql
-        return '(&%s)' % filterstr
-
     def get_count(self, using):
         try:
             vals = ldapdb.connection.search_s(
                 self.model.base_dn,
                 self.model.search_scope,
-                filterstr=self._ldap_filter(),
+                filterstr=compiler.query_as_ldap(self),
                 attrlist=[],
             )
         except ldap.NO_SUCH_OBJECT:
@@ -162,7 +109,7 @@ class Query(BaseQuery):
         return number
 
     def get_compiler(self, using=None, connection=None):
-        return compiler.SQLCompiler(self, ldapdb.connection, using)
+        return super(Query, self).get_compiler(connection=ldapdb.connection)
 
     def has_results(self, using):
         return self.get_count(using) != 0
@@ -179,7 +126,7 @@ class QuerySet(BaseQuerySet):
             vals = ldapdb.connection.search_s(
                 self.model.base_dn,
                 self.model.search_scope,
-                filterstr=self.query._ldap_filter(),
+                filterstr=compiler.query_as_ldap(self.query),
                 attrlist=[],
             )
         except ldap.NO_SUCH_OBJECT:
