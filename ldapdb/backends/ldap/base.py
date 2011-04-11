@@ -49,8 +49,8 @@ class DatabaseOperations(BaseDatabaseOperations):
         return name
 
 class DatabaseWrapper(BaseDatabaseWrapper):
-    def __init__(self, settings_dict, alias='ldap'):
-        super(DatabaseWrapper, self).__init__(settings_dict, alias=alias)
+    def __init__(self, *args, **kwargs):
+        super(DatabaseWrapper, self).__init__(*args, **kwargs)
 
         self.charset = "utf-8"
         self.features = DatabaseFeatures(self)
