@@ -32,16 +32,10 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from copy import deepcopy
-import ldap
-
-from django.db import connections
 from django.db.models.query import QuerySet as BaseQuerySet
-from django.db.models.query_utils import Q
 from django.db.models.sql import Query
 from django.db.models.sql.where import WhereNode as BaseWhereNode, Constraint as BaseConstraint, AND, OR
 
-from ldapdb.backends.ldap import compiler
 from ldapdb.models.fields import CharField
 
 class Constraint(BaseConstraint):
