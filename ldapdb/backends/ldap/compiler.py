@@ -32,6 +32,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+from django.db.models.sql import compiler
+
 import ldap
 
 class SQLCompiler(object):
@@ -106,4 +108,19 @@ class SQLCompiler(object):
                     row.append(None)
             yield row
             pos += 1
+
+class SQLInsertCompiler(compiler.SQLInsertCompiler, SQLCompiler):
+    pass
+
+class SQLDeleteCompiler(compiler.SQLDeleteCompiler, SQLCompiler):
+    pass
+
+class SQLUpdateCompiler(compiler.SQLUpdateCompiler, SQLCompiler):
+    pass
+
+class SQLAggregateCompiler(compiler.SQLAggregateCompiler, SQLCompiler):
+    pass
+
+class SQLDateCompiler(compiler.SQLDateCompiler, SQLCompiler):
+    pass
 
