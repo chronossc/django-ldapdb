@@ -33,7 +33,7 @@
 #
 
 from django.conf import settings
-from ldapdb.backends.ldap.base import DatabaseWrapper
+from django.db import connections
 
 def escape_ldap_filter(value):
     value = unicode(value)
@@ -43,9 +43,11 @@ def escape_ldap_filter(value):
                 .replace(')', '\\29') \
                 .replace('\0', '\\00')
 
-# FIXME: is this the right place to initialize the LDAP connection?
-connection = DatabaseWrapper({
+# Add the LDAP backend to the configured databases
+settings.DATABASES['ldap'] = {
+    'ENGINE': 'ldapdb.backends.ldap',
     'NAME': settings.LDAPDB_SERVER_URI,
     'USER': settings.LDAPDB_BIND_DN,
-    'PASSWORD': settings.LDAPDB_BIND_PASSWORD}, 'ldap')
+    'PASSWORD': settings.LDAPDB_BIND_PASSWORD}
+connection = connections['ldap']
 
