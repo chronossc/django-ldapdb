@@ -32,8 +32,10 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+from django import db
 from django.conf import settings
-from django.db import connections
+
+from ldapdb.router import Router
 
 def escape_ldap_filter(value):
     value = unicode(value)
@@ -43,11 +45,13 @@ def escape_ldap_filter(value):
                 .replace(')', '\\29') \
                 .replace('\0', '\\00')
 
-# Add the LDAP backend to the configured databases
+# Add the LDAP backend
 settings.DATABASES['ldap'] = {
     'ENGINE': 'ldapdb.backends.ldap',
     'NAME': settings.LDAPDB_SERVER_URI,
     'USER': settings.LDAPDB_BIND_DN,
     'PASSWORD': settings.LDAPDB_BIND_PASSWORD}
-connection = connections['ldap']
+connection = db.connections['ldap']
 
+# Add the LDAP router
+db.router.routers.append(Router())
