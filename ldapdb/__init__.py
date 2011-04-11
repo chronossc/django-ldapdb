@@ -57,19 +57,23 @@ class DatabaseOperations(BaseDatabaseOperations):
     def quote_name(self, name):
         return name
 
-class LdapConnection(object):
-    def __init__(self):
+class DatabaseWrapper(object):
+    def __init__(self, settings_dict={}, alias='ldap'):
+        self.settings_dict = settings_dict
         self.connection = None
         self.charset = "utf-8"
         self.features = DatabaseFeatures(self)
         self.ops = DatabaseOperations()
 
+    def close(self):
+        pass
+
     def _cursor(self):
         if self.connection is None:
-            self.connection = ldap.initialize(settings.LDAPDB_SERVER_URI)
+            self.connection = ldap.initialize(self.settings_dict['NAME'])
             self.connection.simple_bind_s(
-                settings.LDAPDB_BIND_DN,
-                settings.LDAPDB_BIND_PASSWORD)
+                self.settings_dict['USER'],
+                self.settings_dict['PASSWORD'])
         return DatabaseCursor(self.connection)
 
     def add_s(self, dn, modlist):
@@ -97,5 +101,8 @@ class LdapConnection(object):
         return output
 
 # FIXME: is this the right place to initialize the LDAP connection?
-connection = LdapConnection()
+connection = DatabaseWrapper({
+    'NAME': settings.LDAPDB_SERVER_URI,
+    'USER': settings.LDAPDB_BIND_DN,
+    'PASSWORD': settings.LDAPDB_BIND_PASSWORD})
 
