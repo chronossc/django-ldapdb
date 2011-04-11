@@ -36,6 +36,7 @@ import ldap
 import logging
 
 import django.db.models
+from django.db import connections, router
 from django.db.models import signals
 
 import ldapdb
@@ -102,7 +103,7 @@ class Model(django.db.models.base.Model):
         return "%s,%s" % (self.build_rdn(), self.base_dn)
         raise Exception("Could not build Distinguished Name")
 
-    def delete(self):
+    def delete(self, using=None):
         """
         Delete this entry.
         """
