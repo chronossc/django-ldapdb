@@ -163,3 +163,5 @@ class Model(django.db.models.base.Model):
         new_class = new.classobj(name, (base_class,), {'base_dn': base_dn, '__module__': base_class.__module__})
         return new_class
 
+    class Meta:
+        abstract = True
