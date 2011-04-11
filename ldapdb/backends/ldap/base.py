@@ -67,6 +67,9 @@ class DatabaseWrapper(BaseDatabaseWrapper):
                 self.settings_dict['PASSWORD'])
         return DatabaseCursor(self.connection)
 
+    def _rollback(self):
+        pass
+
     def add_s(self, dn, modlist):
         cursor = self._cursor()
         return cursor.connection.add_s(dn.encode(self.charset), modlist)
