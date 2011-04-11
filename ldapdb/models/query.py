@@ -35,12 +35,12 @@
 from copy import deepcopy
 import ldap
 
+from django.db import connections
 from django.db.models.query import QuerySet as BaseQuerySet
 from django.db.models.query_utils import Q
 from django.db.models.sql import Query as BaseQuery
 from django.db.models.sql.where import WhereNode as BaseWhereNode, Constraint as BaseConstraint, AND, OR
 
-import ldapdb
 from ldapdb.backends.ldap import compiler
 from ldapdb.models.fields import CharField
 
@@ -89,8 +89,9 @@ class WhereNode(BaseWhereNode):
 
 class Query(BaseQuery):
     def get_count(self, using):
+        connection = connections[using]
         try:
-            vals = ldapdb.connection.search_s(
+            vals = connection.search_s(
                 self.model.base_dn,
                 self.model.search_scope,
                 filterstr=compiler.query_as_ldap(self),
@@ -108,9 +109,6 @@ class Query(BaseQuery):
 
         return number
 
-    def get_compiler(self, using=None, connection=None):
-        return super(Query, self).get_compiler(connection=ldapdb.connection)
-
     def has_results(self, using):
         return self.get_count(using) != 0
 
@@ -122,8 +120,9 @@ class QuerySet(BaseQuerySet):
 
     def delete(self):
         "Bulk deletion."
+        connection = connections[self.db]
         try:
-            vals = ldapdb.connection.search_s(
+            vals = connection.search_s(
                 self.model.base_dn,
                 self.model.search_scope,
                 filterstr=compiler.query_as_ldap(self.query),
@@ -134,5 +133,5 @@ class QuerySet(BaseQuerySet):
 
         # FIXME : there is probably a more efficient way to do this 
         for dn, attrs in vals:
-            ldapdb.connection.delete_s(dn)
+            connection.delete_s(dn)
 
