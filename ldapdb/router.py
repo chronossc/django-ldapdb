@@ -32,21 +32,23 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+def is_ldap_model(model):
+    # FIXME: there is probably a better check than testing 'base_dn'
+    return hasattr(model, 'base_dn')
+
 class Router(object):
     """A router to control all database operations on models in
     the myapp application"""
 
     def db_for_read(self, model, **hints):
         "Point all operations on LDAP models to 'ldap'"
-        from ldapdb.models import Model
-        if Model in model.__bases__:
+        if is_ldap_model(model):
             return 'ldap'
         return None
 
     def db_for_write(self, model, **hints):
         "Point all operations on LDAP models to 'ldap'"
-        from ldapdb.models import Model
-        if Model in model.__bases__:
+        if is_ldap_model(model):
             return 'ldap'
         return None
 
