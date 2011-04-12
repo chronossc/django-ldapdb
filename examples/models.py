@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # 
 # django-ldapdb
-# Copyright (c) 2009-2010, Bolloré telecom
+# Copyright (c) 2009-2011, Bolloré telecom
 # All rights reserved.
 # 
 # See AUTHORS file for a full list of contributors.
