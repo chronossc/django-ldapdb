@@ -50,7 +50,7 @@ if hasattr(settings, 'LDAPDB_SERVER_URI'):
     # Add the LDAP backend
     settings.DATABASES['ldap'] = {
         'ENGINE': 'ldapdb.backends.ldap',
-        'NAME': settings.LDAPDB_SERVER_URI,
+        'HOST': settings.LDAPDB_SERVER_URI,
         'USER': settings.LDAPDB_BIND_DN,
         'PASSWORD': settings.LDAPDB_BIND_PASSWORD}
 
