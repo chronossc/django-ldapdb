@@ -41,6 +41,32 @@ from django.db.models import signals
 
 import ldapdb
 
+class QuerySet(django.db.models.query.QuerySet):
+
+    def using(self, alias):
+        """
+        Selects which database this QuerySet should execute it's query against,
+        but change model base_dn to avoid errors.
+        """
+        clone = self._clone()
+        clone._db = alias
+        if ldapdb.settings.DATABASES.get(alias,{}).has_key('BASE_DN'):
+            # setting 'base_dn' and 'using' based on connection info is
+            # possible to use one model to save in many connections, like
+            # django does with multi db
+            clone.model.base_dn = ldapdb.settings.DATABASES[alias]['BASE_DN']
+            clone.model.using = alias
+        return clone
+
+class ModelManager(django.db.models.manager.Manager):
+
+    def get_query_set(self):
+        # force using to choose right server
+        return QuerySet(self.model, using=self._db).using(self._db or self.model.using)
+
+    def using(self,alias):
+        return self.get_query_set().using(alias)
+
 class Model(django.db.models.base.Model):
     """
     Base class for all LDAP models.
@@ -51,6 +77,8 @@ class Model(django.db.models.base.Model):
     base_dn = None
     search_scope = ldap.SCOPE_SUBTREE
     object_classes = ['top']
+
+    objects = ModelManager()
 
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__(*args, **kwargs)
@@ -114,7 +142,8 @@ class Model(django.db.models.base.Model):
             # update an existing entry
             record_exists = True
             modlist = []
-            orig = self.__class__.objects.get(pk=self.saved_pk)
+            # force use of alias in 'self.using' if any alias are sent in args.
+            orig = self.__class__.objects.using(using or self.using).get(pk=self.saved_pk)
             for field in self._meta.fields:
                 if not field.db_column:
                     continue
