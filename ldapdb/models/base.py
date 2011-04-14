@@ -143,7 +143,7 @@ class Model(django.db.models.base.Model):
             record_exists = True
             modlist = []
             # force use of alias in 'self.using' if any alias are sent in args.
-            orig = self.__class__.objects.using(using or self.using).get(pk=self.saved_pk)
+            orig = self.__class__.objects.using(using or self.using or self.objects._db ).get(pk=self.saved_pk)
             for field in self._meta.fields:
                 if not field.db_column:
                     continue
