@@ -84,7 +84,8 @@ class DatabaseWrapper(BaseDatabaseWrapper):
 
     def _cursor(self):
         if self.connection is None:
-            self.connection = ldap.initialize(self.settings_dict['HOST'])
+            self.connection = ldap.initialize(self.settings_dict['NAME'])
+
             self.connection.simple_bind_s(
                 self.settings_dict['USER'],
                 self.settings_dict['PASSWORD'])
