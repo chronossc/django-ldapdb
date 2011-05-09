@@ -17,8 +17,15 @@ DATABASES = {
         'PASSWORD': '',
         'HOST': '',
         'PORT': '',
+    },
+    'ldap': {
+        'ENGINE': 'ldapdb.backends.ldap',
+        'NAME': 'ldap://',
+        'USER': 'cn=admin,dc=nodomain',
+        'PASSWORD': 'test',
     }
 }
+DATABASE_ROUTERS = ['ldapdb.router.Router']
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -93,6 +100,3 @@ INSTALLED_APPS = (
     'django.contrib.admin',
 )
 
-LDAPDB_BIND_DN="cn=admin,dc=nodomain"
-LDAPDB_BIND_PASSWORD="test"
-LDAPDB_SERVER_URI="ldap://"
