@@ -49,13 +49,13 @@ class CharField(fields.CharField):
 
     def get_db_prep_lookup(self, lookup_type, value, connection, prepared=False):
         "Returns field's value prepared for database lookup."
-        if lookup_type == 'endswith':
+        if lookup_type in ['endswith','iendswith']:
             return ["*%s" % escape_ldap_filter(value)]
-        elif lookup_type == 'startswith':
+        elif lookup_type in ['startswith','istartswith']:
             return ["%s*" % escape_ldap_filter(value)]
         elif lookup_type in ['contains', 'icontains']:
             return ["*%s*" % escape_ldap_filter(value)]
-        elif lookup_type == 'exact':
+        elif lookup_type in ['exact','iexact']:
             return [escape_ldap_filter(value)]
         elif lookup_type == 'in':
             return [escape_ldap_filter(v) for v in value]
@@ -67,13 +67,13 @@ class CharField(fields.CharField):
 
     def get_prep_lookup(self, lookup_type, value):
         "Perform preliminary non-db specific lookup checks and conversions"
-        if lookup_type == 'endswith':
+        if lookup_type in ['endswith','iendswith']:
             return "*%s" % escape_ldap_filter(value)
-        elif lookup_type == 'startswith':
+        elif lookup_type in ['startswith','istartswith']:
             return "%s*" % escape_ldap_filter(value)
         elif lookup_type in ['contains', 'icontains']:
             return "*%s*" % escape_ldap_filter(value)
-        elif lookup_type == 'exact':
+        elif lookup_type in ['exact','iexact']:
             return escape_ldap_filter(value)
         elif lookup_type == 'in':
             return [escape_ldap_filter(v) for v in value]

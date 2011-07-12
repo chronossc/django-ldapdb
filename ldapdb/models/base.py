@@ -32,14 +32,14 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import ldap
-import logging
-
-import django.db.models
+from django.conf import settings
+from django.core import exceptions
 from django.db import connections, router
 from django.db.models import signals
-
+import django.db.models
+import ldap
 import ldapdb
+import logging
 
 class QuerySet(django.db.models.query.QuerySet):
 
@@ -50,19 +50,13 @@ class QuerySet(django.db.models.query.QuerySet):
         """
         clone = self._clone()
         clone._db = alias
-        if ldapdb.settings.DATABASES.get(alias,{}).has_key('BASE_DN'):
-            # setting 'base_dn' and 'using' based on connection info is
-            # possible to use one model to save in many connections, like
-            # django does with multi db
-            clone.model.base_dn = ldapdb.settings.DATABASES[alias]['BASE_DN']
-            clone.model.using = alias
         return clone
 
 class ModelManager(django.db.models.manager.Manager):
 
     def get_query_set(self):
         # force using to choose right server
-        return QuerySet(self.model, using=self._db).using(self._db or self.model.using)
+        return QuerySet(self.model, using=self._db).using(self._db)
 
     def using(self,alias):
         return self.get_query_set().using(alias)
@@ -74,7 +68,33 @@ class Model(django.db.models.base.Model):
     dn = django.db.models.fields.CharField(max_length=200)
 
     # meta-data
-    base_dn = None
+    @classmethod
+    def get_base_dn(self,alias):
+        try:
+            conn_dict = settings.DATABASES[alias]
+        except KeyError:
+            raise exceptions.ImproperlyConfigured,u"Connection settings for '%s' not found. Please, setup a connection in DATABASES configuration at settings.py" % alias
+        else:
+            try:
+                return conn_dict['BASE_DN']
+            except KeyError:
+                raise exceptions.ImproperlyConfigured,u"Connections settings for '%(conn)s' found, but BASE_DN for '%(conn)s' not found in settings. Please configure a BASE_DN for connection '%(conn)s'." % {'conn': alias}
+
+    @property
+    def base_dn(self):
+        # backwards compatibility
+        try:
+            return self.__class__.get_base_dn(self._state.db)
+        except Exception:
+            raise ValueError,u"Unknow connection. Need a instance to know the connection."
+
+    @property
+    def using(self):
+        try:
+            return self._state.db
+        except Exception:
+            raise ValueError,u"Unknow connection. Need a instance to know the connection."
+
     search_scope = ldap.SCOPE_SUBTREE
     object_classes = ['top']
 
@@ -100,7 +120,7 @@ class Model(django.db.models.base.Model):
         """
         Build the Distinguished Name for this entry.
         """
-        return "%s,%s" % (self.build_rdn(), self.base_dn)
+        return "%s,%s" % (self.build_rdn(), self.__class__.get_base_dn(self._state.db))
         raise Exception("Could not build Distinguished Name")
 
     def delete(self, using=None):
@@ -143,7 +163,7 @@ class Model(django.db.models.base.Model):
             record_exists = True
             modlist = []
             # force use of alias in 'self.using' if any alias are sent in args.
-            orig = self.__class__.objects.using(using or self.using or self.objects._db ).get(pk=self.saved_pk)
+            orig = self.__class__.objects.using(using or self.objects._db ).get(pk=self.saved_pk)
             for field in self._meta.fields:
                 if not field.db_column:
                     continue
@@ -172,17 +192,17 @@ class Model(django.db.models.base.Model):
         self.saved_pk = self.pk
         signals.post_save.send(sender=self.__class__, instance=self, created=(not record_exists))
 
-    @classmethod
-    def scoped(base_class, base_dn):
-        """
-        Returns a copy of the current class with a different base_dn.
-        """
-        import new
-        import re
-        suffix = re.sub('[=,]', '_', base_dn)
-        name = "%s_%s" % (base_class.__name__, str(suffix))
-        new_class = new.classobj(name, (base_class,), {'base_dn': base_dn, '__module__': base_class.__module__})
-        return new_class
+    #@classmethod
+    #def scoped(base_class, base_dn):
+    #    """
+    #    Returns a copy of the current class with a different base_dn.
+    #    """
+    #    import new
+    #    import re
+    #    suffix = re.sub('[=,]', '_', base_dn)
+    #    name = "%s_%s" % (base_class.__name__, str(suffix))
+    #    new_class = new.classobj(name, (base_class,), {'base_dn': base_dn, '__module__': base_class.__module__})
+    #    return new_class
 
     class Meta:
         abstract = True
