@@ -84,7 +84,11 @@ class DatabaseWrapper(BaseDatabaseWrapper):
 
     def _cursor(self):
         if self.connection is None:
-            self.connection = ldap.initialize(self.settings_dict['NAME'])
+            #self.connection = ldap.initialize(self.settings_dict['NAME'])
+            self.connection = ldap.ldapobject.ReconnectLDAPObject(
+                    uri=self.settings_dict['NAME'],
+                    trace_level=0,
+                    )
 
             self.connection.simple_bind_s(
                 self.settings_dict['USER'],
@@ -95,6 +99,9 @@ class DatabaseWrapper(BaseDatabaseWrapper):
             ldap_options = getattr(settings,'LDAPDB_LDAP_OPTIONS',{})
             for opt_name,opt_value in ldap_options.items():
                     self.connection.set_option(opt_name,opt_value)
+
+            #self.connection.set_option(ldap.OPT_TIMEOUT,1)
+            #self.connection.set_option(ldap.OPT_TIMELIMIT,1)
 
         return DatabaseCursor(self.connection)
 
