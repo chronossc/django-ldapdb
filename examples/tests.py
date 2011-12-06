@@ -356,6 +356,10 @@ class ScopedTestCase(BaseTestCase):
         qs = ScopedGroup.objects.all()
         self.assertEquals(qs.count(), 1)
 
+        g2 = ScopedGroup.objects.get(name="scopedgroup")
+        self.assertEquals(g2.name, u'scopedgroup')
+        self.assertEquals(g2.gid, 5000)
+
 class AdminTestCase(BaseTestCase):
     fixtures = ['test_users.json']
 

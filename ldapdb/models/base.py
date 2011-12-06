@@ -148,11 +148,12 @@ class Model(django.db.models.base.Model):
         """
         Returns a copy of the current class with a different base_dn.
         """
-        import new
+        class Meta:
+            proxy = True
         import re
         suffix = re.sub('[=,]', '_', base_dn)
         name = "%s_%s" % (base_class.__name__, str(suffix))
-        new_class = new.classobj(name, (base_class,), {'base_dn': base_dn, '__module__': base_class.__module__})
+        new_class = type(name, (base_class,), {'base_dn': base_dn, '__module__': base_class.__module__, 'Meta': Meta})
         return new_class
 
     class Meta:
