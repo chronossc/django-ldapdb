@@ -33,6 +33,7 @@
 #
 
 import ldap
+import django
 
 from django.db.backends import BaseDatabaseFeatures, BaseDatabaseOperations, BaseDatabaseWrapper
 from django.db.backends.creation import BaseDatabaseCreation
@@ -73,7 +74,10 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         self.charset = "utf-8"
         self.creation = DatabaseCreation(self)
         self.features = DatabaseFeatures(self)
-        self.ops = DatabaseOperations()
+        if django.VERSION > (1, 4):
+            self.ops = DatabaseOperations(self)
+        else:
+            self.ops = DatabaseOperations()
         self.settings_dict['SUPPORTS_TRANSACTIONS'] = False
 
     def close(self):
