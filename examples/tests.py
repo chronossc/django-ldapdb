@@ -202,6 +202,20 @@ class GroupTestCase(BaseTestCase):
         self.assertEquals(qs[1].gid, 1001)
         self.assertEquals(qs[2].gid, 1000)
 
+        # ascending pk
+        qs = LdapGroup.objects.order_by('pk')
+        self.assertEquals(len(qs), 3)
+        self.assertEquals(qs[0].name, 'bargroup')
+        self.assertEquals(qs[1].name, 'foogroup')
+        self.assertEquals(qs[2].name, 'wizgroup')
+
+        # descending pk
+        qs = LdapGroup.objects.order_by('-pk')
+        self.assertEquals(len(qs), 3)
+        self.assertEquals(qs[0].name, 'wizgroup')
+        self.assertEquals(qs[1].name, 'foogroup')
+        self.assertEquals(qs[2].name, 'bargroup')
+
     def test_bulk_delete(self):
         LdapGroup.objects.all().delete()
 
@@ -355,6 +369,10 @@ class ScopedTestCase(BaseTestCase):
 
         qs = ScopedGroup.objects.all()
         self.assertEquals(qs.count(), 1)
+
+        g2 = ScopedGroup.objects.get(name="scopedgroup")
+        self.assertEquals(g2.name, u'scopedgroup')
+        self.assertEquals(g2.gid, 5000)
 
 class AdminTestCase(BaseTestCase):
     fixtures = ['test_users.json']

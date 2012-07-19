@@ -33,12 +33,11 @@
 #
 
 from django.test import TestCase
-from django.db.models.sql.where import Constraint, AND, OR
+from django.db.models.sql.where import Constraint, AND, OR, WhereNode
 
 from ldapdb import escape_ldap_filter
 from ldapdb.backends.ldap.compiler import where_as_ldap
 from ldapdb.models.fields import CharField, IntegerField, ListField
-from ldapdb.models.query import WhereNode
 
 class WhereTestCase(TestCase):
     def test_escape(self):

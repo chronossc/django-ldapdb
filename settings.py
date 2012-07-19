@@ -17,8 +17,15 @@ DATABASES = {
         'PASSWORD': '',
         'HOST': '',
         'PORT': '',
+    },
+    'ldap': {
+        'ENGINE': 'ldapdb.backends.ldap',
+        'NAME': 'ldap://',
+        'USER': 'cn=admin,dc=nodomain',
+        'PASSWORD': 'test',
     }
 }
+DATABASE_ROUTERS = ['ldapdb.router.Router']
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name

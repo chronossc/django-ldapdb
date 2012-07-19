@@ -32,6 +32,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+import django
 import ldap
 from django.conf import settings
 from django.db.backends import BaseDatabaseFeatures, BaseDatabaseOperations, BaseDatabaseWrapper
@@ -73,7 +74,10 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         self.charset = "utf-8"
         self.creation = DatabaseCreation(self)
         self.features = DatabaseFeatures(self)
-        self.ops = DatabaseOperations()
+        if django.VERSION > (1, 4):
+            self.ops = DatabaseOperations(self)
+        else:
+            self.ops = DatabaseOperations()
         self.settings_dict['SUPPORTS_TRANSACTIONS'] = False
 
     def close(self):

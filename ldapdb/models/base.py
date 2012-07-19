@@ -66,8 +66,13 @@ class Model(django.db.models.base.Model):
     Base class for all LDAP models.
     """
     dn = django.db.models.fields.CharField(max_length=200)
+    
+    base_dn = None
+    search_scope = ldap.SCOPE_SUBTREE
+    object_classes = ['top']
 
-    # meta-data
+    objects = ModelManager()
+
     @classmethod
     def get_base_dn(self,alias):
         try:
@@ -95,11 +100,6 @@ class Model(django.db.models.base.Model):
         except Exception:
             raise ValueError,u"Unknow connection. Need a instance to know the connection."
 
-    search_scope = ldap.SCOPE_SUBTREE
-    object_classes = ['top']
-
-    objects = ModelManager()
-
     def __init__(self, *args, **kwargs):
         super(Model, self).__init__(*args, **kwargs)
         self.saved_pk = self.pk
@@ -120,7 +120,7 @@ class Model(django.db.models.base.Model):
         """
         Build the Distinguished Name for this entry.
         """
-        return "%s,%s" % (self.build_rdn(), self.__class__.get_base_dn(self._state.db))
+        return "%s,%s" % (self.build_rdn(), self.base_dn)
         raise Exception("Could not build Distinguished Name")
 
     def delete(self, using=None):
@@ -163,7 +163,10 @@ class Model(django.db.models.base.Model):
             record_exists = True
             modlist = []
             # force use of alias in 'self.using' if any alias are sent in args.
-            orig = self.__class__.objects.using(using or self.objects._db ).get(pk=self.saved_pk)
+            try:
+                orig = self.__class__.objects.using(using or self._state.db ).get(pk=self.saved_pk)
+            except Exception:
+                raise ValueError,u"Unknow connection. Need a instance to know the connection."
             for field in self._meta.fields:
                 if not field.db_column:
                     continue
@@ -203,6 +206,22 @@ class Model(django.db.models.base.Model):
     #    name = "%s_%s" % (base_class.__name__, str(suffix))
     #    new_class = new.classobj(name, (base_class,), {'base_dn': base_dn, '__module__': base_class.__module__})
     #    return new_class
+    #
+    # This commented version are from previous versions but works, don't know
+    # if new version can work
+
+    @classmethod
+    def scoped(base_class, base_dn):
+        """
+        Returns a copy of the current class with a different base_dn.
+        """
+        class Meta:
+            proxy = True
+        import re
+        suffix = re.sub('[=,]', '_', base_dn)
+        name = "%s_%s" % (base_class.__name__, str(suffix))
+        new_class = type(name, (base_class,), {'base_dn': base_dn, '__module__': base_class.__module__, 'Meta': Meta})
+        return new_class
 
     class Meta:
         abstract = True

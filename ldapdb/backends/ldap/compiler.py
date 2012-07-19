@@ -155,6 +155,9 @@ class SQLCompiler(object):
                     negate = True
                 else:
                     negate = False
+                if fieldname == 'pk':
+                    fieldname = self.query.model._meta.pk.name
+
                 field = self.query.model._meta.get_field(fieldname)
                 attr_x = field.from_ldap(x[1].get(field.db_column, []), connection=self.connection)
                 attr_y = field.from_ldap(y[1].get(field.db_column, []), connection=self.connection)
