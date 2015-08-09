@@ -1,13 +1,9 @@
 # Django settings for django-ldapdb project.
 
+import ldap
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
-
-ADMINS = (
-    # ('Your Name', 'your_email@domain.com'),
-)
-
-MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
@@ -20,9 +16,13 @@ DATABASES = {
     },
     'ldap': {
         'ENGINE': 'ldapdb.backends.ldap',
-        'NAME': 'ldap://',
+        'NAME': 'ldap://localhost',
         'USER': 'cn=admin,dc=nodomain',
         'PASSWORD': 'test',
+        #'TLS': True,
+        #'CONNECTION_OPTIONS': {
+        #    ldap.OPT_X_TLS_DEMAND: True,
+        #}
     }
 }
 DATABASE_ROUTERS = ['ldapdb.router.Router']
@@ -39,8 +39,6 @@ TIME_ZONE = 'America/Chicago'
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
-
-SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
@@ -84,6 +82,8 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'urls'
 
+STATIC_URL = '/static/'
+
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
@@ -94,12 +94,8 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
     'ldapdb',
     'examples',
     'django.contrib.admin',
 )
 
-LDAPDB_BIND_DN="cn=admin,dc=nodomain"
-LDAPDB_BIND_PASSWORD="test"
-LDAPDB_SERVER_URI="ldap://"
